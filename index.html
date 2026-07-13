@@ -10,169 +10,331 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Solara</title>
 <style>
-:root{--ink:#2c2a27;--muted:#756c62}
-*{box-sizing:border-box}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);transition:background .5s ease}
-body.morning{background:linear-gradient(180deg,#fff1d6,#f8dcc0)}
-body.day{background:linear-gradient(180deg,#fff8e9,#f6e6c8)}
-body.evening{background:linear-gradient(180deg,#f6c38d,#d98a74)}
-body.night{background:linear-gradient(180deg,#17233c,#2c3956);color:#f7f2ea}
-
-#splash{position:fixed;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:.6s}
-#splash.morning{background:radial-gradient(circle,#fff8c9,#f4b85a)}
-#splash.day{background:radial-gradient(circle,#fff8c9,#f5b845)}
-#splash.evening{background:radial-gradient(circle,#ffd5a0,#d7735c)}
-#splash.night{background:radial-gradient(circle,#53658a,#17233c);color:white}
-#splash.hide{opacity:0;visibility:hidden}.splash-icon{font-size:90px}.brand{font-size:36px;margin:10px 0 2px}
-
-#app{max-width:430px;margin:auto;padding:20px 16px 105px}section{display:none}.active{display:block}
-.hero{
-  min-height:330px;border-radius:30px;padding:24px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  position:relative;box-shadow:0 18px 45px rgba(30,30,30,.18);
-  overflow:hidden;transition:background .5s ease
+:root{
+  --ink:#3c342f;
+  --muted:#7a6f68;
+  --gold:#f2b84b;
+  --sand:#fff7e8;
+  --rose:#f6b8be;
+  --aqua:#bfe2e7;
 }
-.sky-layer{position:absolute;inset:0}
-.weather-visual{font-size:118px;z-index:2;filter:drop-shadow(0 8px 12px rgba(0,0,0,.16))}
-.score{position:absolute;top:94px;font-size:72px;font-weight:800;z-index:3}
-.uv{font-size:30px;font-weight:800;background:rgba(255,255,255,.48);padding:8px 16px;border-radius:18px;backdrop-filter:blur(8px);z-index:3}
-.weather-label{z-index:3;font-weight:700;margin-top:12px;text-align:center}
-.horizon{position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(180deg,rgba(255,255,255,0),rgba(78,86,58,.28));z-index:1}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--ink);
+  transition:background .7s ease,color .7s ease;
+}
+body.morning{background:linear-gradient(180deg,#fff2d3,#f8d8c4)}
+body.day{background:linear-gradient(180deg,#fff8ea,#f6e7cc)}
+body.evening{background:linear-gradient(180deg,#f6c98f,#d98a78)}
+body.night{background:linear-gradient(180deg,#1d2944,#2f3e60);color:#fffaf3}
 
-/* Morgen */
-.hero.morning.sunny{background:linear-gradient(180deg,#ffd9a8 0%,#ffefc7 42%,#f7b764 100%)}
-.hero.morning.partly{background:linear-gradient(180deg,#d8e8ef 0%,#ffd8ab 62%,#efb36a 100%)}
-.hero.morning.cloudy{background:linear-gradient(180deg,#bfcdd4,#e8d4bf)}
-.hero.morning.rainy{background:linear-gradient(180deg,#8fa4b2,#c4b9b0)}
+#splash{
+  position:fixed;inset:0;z-index:20;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity .7s ease,visibility .7s ease;
+}
+#splash.morning{background:linear-gradient(180deg,#fff4cf,#efb873)}
+#splash.day{background:linear-gradient(180deg,#fff4cf,#f4c45f)}
+#splash.evening{background:linear-gradient(180deg,#ffd3a6,#cf725f)}
+#splash.night{background:linear-gradient(180deg,#485a82,#1d2944)}
+#splash.hide{opacity:0;visibility:hidden}
+.logo-mark{width:120px;height:120px;animation:float 3.2s ease-in-out infinite}
+#splash h1{font-size:38px;margin:12px 0 2px}
+#splash p{margin:0;font-weight:600}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes drift{0%,100%{transform:translateX(-4px)}50%{transform:translateX(6px)}}
+@keyframes rain{0%{transform:translateY(-8px);opacity:.1}50%{opacity:1}100%{transform:translateY(20px);opacity:0}}
+@keyframes twinkle{0%,100%{opacity:.3}50%{opacity:1}}
+@keyframes shimmer{0%,100%{filter:brightness(1)}50%{filter:brightness(1.08)}}
 
-/* Tag */
-.hero.day.sunny{background:radial-gradient(circle at 50% 30%,#fff9c7,#ffd76a 32%,#ef9c2c)}
-.hero.day.partly{background:linear-gradient(180deg,#bfe8f2 0%,#f4d58b 100%)}
-.hero.day.cloudy{background:linear-gradient(180deg,#dce8ed,#9db2bd)}
-.hero.day.rainy{background:linear-gradient(180deg,#8099ad,#52697d);color:white}
+#app{max-width:430px;margin:auto;padding:20px 16px 110px}
+section{display:none}
+section.active{display:block}
+h1{margin:0 0 6px}
+.greeting{margin:0 0 14px;font-size:17px}
 
-/* Abend */
-.hero.evening.sunny{background:linear-gradient(180deg,#ffcf8b 0%,#e7795e 68%,#8c4f65 100%)}
-.hero.evening.partly{background:linear-gradient(180deg,#cb8ba5 0%,#f1b77a 68%,#7a4b68 100%)}
-.hero.evening.cloudy{background:linear-gradient(180deg,#8f8797,#c09389)}
-.hero.evening.rainy{background:linear-gradient(180deg,#58677c,#8a6674);color:white}
+.weather-stage{
+  border-radius:32px;
+  min-height:360px;
+  overflow:hidden;
+  position:relative;
+  box-shadow:0 18px 48px rgba(79,51,13,.16);
+  transition:background .8s ease;
+}
+.weather-stage.morning{background:linear-gradient(180deg,#ffd9a5,#fff0c8 55%,#efb66c)}
+.weather-stage.day{background:linear-gradient(180deg,#ccecf2,#fff1b0 58%,#f3bd5f)}
+.weather-stage.evening{background:linear-gradient(180deg,#f5b98a,#dc7d70 58%,#7b526f)}
+.weather-stage.night{background:linear-gradient(180deg,#243658,#12192d)}
+.weather-layer{position:absolute;inset:0}
+.weather-art{
+  position:absolute;left:50%;top:36px;transform:translateX(-50%);
+  width:250px;height:180px;
+  animation:bob 4s ease-in-out infinite;
+  transition:opacity .45s ease,transform .45s ease;
+}
+.weather-meta{
+  position:absolute;left:0;right:0;bottom:22px;text-align:center;
+  color:#3b342f;
+}
+.night .weather-meta{color:#fff}
+.temperature{font-size:42px;font-weight:800;line-height:1}
+.condition{font-size:18px;font-weight:700;margin-top:6px}
+.feels{font-size:14px;margin-top:4px}
+.score-badge{
+  position:absolute;right:18px;top:18px;
+  background:rgba(255,255,255,.62);
+  border:1px solid rgba(255,255,255,.7);
+  border-radius:22px;padding:11px 14px;text-align:center;
+  backdrop-filter:blur(12px);
+}
+.night .score-badge{background:rgba(255,255,255,.14);color:#fff}
+.score-num{font-size:28px;font-weight:800}
+.score-label{font-size:11px;font-weight:700}
+.uv-badge{
+  position:absolute;left:18px;top:18px;
+  background:rgba(255,255,255,.62);
+  border-radius:22px;padding:11px 14px;
+  backdrop-filter:blur(12px);
+  font-size:22px;font-weight:800
+}
+.night .uv-badge{background:rgba(255,255,255,.14);color:#fff}
 
-/* Nacht */
-.hero.night.sunny{background:linear-gradient(180deg,#223050,#12192d);color:white}
-.hero.night.partly{background:linear-gradient(180deg,#3f506e,#1d2942);color:white}
-.hero.night.cloudy{background:linear-gradient(180deg,#4b5568,#222a39);color:white}
-.hero.night.rainy{background:linear-gradient(180deg,#27364a,#111722);color:white}
-.hero.night .uv,.hero.rainy .uv{background:rgba(255,255,255,.18);color:white}
+.card{
+  background:rgba(255,255,255,.92);
+  color:#3c342f;
+  border-radius:22px;
+  padding:18px;
+  margin:14px 0;
+  box-shadow:0 10px 28px rgba(83,61,23,.08)
+}
+button{
+  width:100%;padding:15px;border:0;border-radius:16px;
+  background:linear-gradient(135deg,#e7a936,#f2c45b);
+  color:white;font-size:16px;font-weight:700;margin:7px 0
+}
+input,select{
+  width:100%;padding:13px;margin:6px 0 12px;
+  border:1px solid #ded3c3;border-radius:12px;background:white;font-size:16px
+}
+.timer{font-size:66px;text-align:center;font-weight:800}
+.photo{
+  height:145px;border-radius:14px;background:#eee2cf;
+  display:flex;align-items:center;justify-content:center;
+  font-size:40px;overflow:hidden
+}
+.small{font-size:14px;color:var(--muted)}
 
-.card{background:rgba(255,255,255,.92);border-radius:22px;padding:18px;margin:14px 0;box-shadow:0 10px 28px rgba(83,61,23,.08);color:#2c2a27}
-button{width:100%;padding:15px;border:0;border-radius:16px;background:linear-gradient(135deg,#e4a72d,#efbd51);color:white;font-size:16px;font-weight:700;margin:7px 0}
-input,select{width:100%;padding:13px;margin:6px 0 12px;border:1px solid #ded3c3;border-radius:12px;background:white;font-size:16px}
-.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(430px,100%);display:grid;grid-template-columns:repeat(5,1fr);background:rgba(255,255,255,.97);padding:8px 6px calc(8px + env(safe-area-inset-bottom));border-top:1px solid #e5d9c9}
-.nav button{background:transparent;color:#6c6258;padding:8px 2px;font-size:11px;border-radius:14px}.nav button span{display:block;font-size:23px}.nav button.on{background:#fff0cf;color:#9a6400}
-.photo{height:145px;border-radius:14px;background:#eee2cf;display:flex;align-items:center;justify-content:center;font-size:40px;overflow:hidden}.timer{font-size:66px;text-align:center;font-weight:800}.small{font-size:14px;color:var(--muted)}
+.nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:min(430px,100%);
+  display:grid;grid-template-columns:repeat(5,1fr);
+  background:rgba(255,255,255,.98);
+  padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+  border-top:1px solid #eadfce;
+  box-shadow:0 -8px 26px rgba(79,51,13,.08);
+  backdrop-filter:blur(16px)
+}
+.nav button{
+  background:transparent;color:#7b7068;
+  padding:8px 2px 6px;font-size:11px;border-radius:15px;
+  box-shadow:none;margin:0
+}
+.nav svg{display:block;width:27px;height:27px;margin:0 auto 3px}
+.nav button.on{background:#fff0cf;color:#9a6400}
+
+.face-eye{fill:#443831}
+.face-mouth{fill:none;stroke:#443831;stroke-width:4;stroke-linecap:round}
+.cheek{fill:#f6b8be;opacity:.9}
+.cloud-fill{fill:#fffaf3}
+.cloud-grey{fill:#c7c7c5}
+.cloud-dark{fill:#8f9294}
+.drop{fill:#7eb7de}
+.star{fill:#fff8d7;animation:twinkle 2.8s ease-in-out infinite}
+.rainbow{animation:shimmer 3s ease-in-out infinite}
 </style>
 </head>
 <body>
-<div id="splash"><div id="splashIcon" class="splash-icon">☀️</div><h1 class="brand">Solara</h1><p id="splashText">Lerne deine Sonne kennen.</p></div>
+<div id="splash">
+  <svg class="logo-mark" viewBox="0 0 120 120" aria-label="Solara Logo">
+    <circle cx="60" cy="60" r="34" fill="#f5c45d"/>
+    <g stroke="#f5c45d" stroke-width="8" stroke-linecap="round">
+      <line x1="60" y1="8" x2="60" y2="20"/>
+      <line x1="60" y1="100" x2="60" y2="112"/>
+      <line x1="8" y1="60" x2="20" y2="60"/>
+      <line x1="100" y1="60" x2="112" y2="60"/>
+      <line x1="23" y1="23" x2="31" y2="31"/>
+      <line x1="89" y1="89" x2="97" y2="97"/>
+      <line x1="23" y1="97" x2="31" y2="89"/>
+      <line x1="89" y1="31" x2="97" y2="23"/>
+    </g>
+    <circle cx="48" cy="58" r="3.5" class="face-eye"/>
+    <circle cx="72" cy="58" r="3.5" class="face-eye"/>
+    <path d="M51 70 Q60 78 69 70" class="face-mouth"/>
+    <ellipse cx="41" cy="69" rx="7" ry="4" class="cheek"/>
+    <ellipse cx="79" cy="69" rx="7" ry="4" class="cheek"/>
+  </svg>
+  <h1>Solara</h1>
+  <p id="splashText">Lerne deine Sonne kennen.</p>
+</div>
+
 <div id="app">
 <section id="today" class="active">
-<h1>Solara</h1><p id="greet">Guten Abend, Ruby 🌅</p>
-<div id="hero" class="hero evening sunny">
-  <div class="sky-layer"></div>
-  <div class="horizon"></div>
-  <div id="weatherVisual" class="weather-visual">🌇</div>
-  <div id="score" class="score">86</div>
-  <div id="uv" class="uv">UV 5,8</div>
-  <p id="weatherLabel" class="weather-label">Sonniger Abend · Sonnenuntergang</p>
-</div>
-<div class="card">
-  <h3>Deine heutige Empfehlung</h3>
-  <p><b>Sonnenfenster:</b> 12:20–12:48</p>
-  <p><b>Dauer:</b> 28 Minuten</p>
-  <p><b>Sonnenschutz:</b> SPF 50</p>
-  <button onclick="startTimer()">Sonnenzeit starten</button>
-</div>
+  <h1>Solara</h1>
+  <p id="greet" class="greeting">Guten Tag, Ruby!</p>
+
+  <div id="weatherStage" class="weather-stage day">
+    <div class="uv-badge" id="uvBadge">UV 5,8</div>
+    <div class="score-badge">
+      <div id="scoreNum" class="score-num">86</div>
+      <div class="score-label">Solara Score</div>
+    </div>
+
+    <div id="weatherArt" class="weather-art"></div>
+
+    <div class="weather-meta">
+      <div id="temperature" class="temperature">22 °C</div>
+      <div id="condition" class="condition">Sonnig</div>
+      <div id="feels" class="feels">Gefühlt 24 °C · Wolfsburg</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Deine heutige Empfehlung</h3>
+    <p><b>Sonnenfenster:</b> 12:20–12:48</p>
+    <p><b>Empfohlene Dauer:</b> 28 Minuten</p>
+    <p><b>Sonnenschutz:</b> SPF 50</p>
+    <button onclick="startTimer()">Sonnenzeit starten</button>
+  </div>
 </section>
 
-<section id="timerScreen"><h1>Deine Sonnenzeit</h1><div class="card"><div id="timer" class="timer">28:00</div><p style="text-align:center">Verbleibende Zeit</p><button onclick="stopTimer()">Sitzung beenden</button></div></section>
+<section id="timerScreen">
+  <h1>Deine Sonnenzeit</h1>
+  <div class="card">
+    <div id="timer" class="timer">28:00</div>
+    <p style="text-align:center">Verbleibende Zeit</p>
+    <button onclick="stopTimer()">Sitzung beenden</button>
+  </div>
+</section>
 
-<section id="products"><h1>Produkte</h1><div class="card"><input id="productPhoto" type="file" accept="image/*" capture="environment"><div id="productPreview" class="photo">📷</div><label>Marke</label><input id="brand"><label>Produkt</label><input id="productName"><label>SPF</label><select id="spf"><option>30</option><option selected>50</option><option>50+</option></select><button onclick="saveProduct()">Speichern</button><p id="savedProduct" class="small"></p></div></section>
+<section id="products">
+  <h1>Produkte</h1>
+  <div class="card">
+    <input id="productPhoto" type="file" accept="image/*" capture="environment">
+    <div id="productPreview" class="photo">Produktfoto</div>
+    <label>Marke</label><input id="brand">
+    <label>Produkt</label><input id="productName">
+    <label>SPF</label>
+    <select id="spf"><option>30</option><option selected>50</option><option>50+</option></select>
+    <button onclick="saveProduct()">Speichern</button>
+    <p id="savedProduct" class="small"></p>
+  </div>
+</section>
 
-<section id="skin"><h1>Haut</h1><div class="card"><input id="skinPhoto" type="file" accept="image/*" capture="user"><div id="skinPreview" class="photo">📸</div><label>Hautreaktion</label><select id="reaction"><option>Normal</option><option>Warm</option><option>Leicht gerötet</option><option>Stark gerötet</option></select><label>Notiz</label><input id="skinNote"><button onclick="saveSkin()">Hautcheck speichern</button><div id="skinLog"></div></div><p class="small">Nur Dokumentation, keine Diagnose.</p></section>
+<section id="skin">
+  <h1>Haut</h1>
+  <div class="card">
+    <input id="skinPhoto" type="file" accept="image/*" capture="user">
+    <div id="skinPreview" class="photo">Hautfoto</div>
+    <label>Hautreaktion</label>
+    <select id="reaction">
+      <option>Normal</option>
+      <option>Warm</option>
+      <option>Leicht gerötet</option>
+      <option>Stark gerötet</option>
+    </select>
+    <label>Notiz</label><input id="skinNote">
+    <button onclick="saveSkin()">Hautcheck speichern</button>
+    <div id="skinLog"></div>
+  </div>
+  <p class="small">Nur zur Dokumentation, keine medizinische Diagnose.</p>
+</section>
 
-<section id="history"><h1>Verlauf</h1><div id="historyList" class="card"><p>Noch keine Sitzung gespeichert.</p></div></section>
+<section id="history">
+  <h1>Verlauf</h1>
+  <div id="historyList" class="card"><p>Noch keine Sitzung gespeichert.</p></div>
+</section>
 
-<section id="profile"><h1>Profil</h1><div class="card">
-<label>Name</label><input id="name" value="Ruby">
-<label>Alter</label><input id="age" value="19">
-<label>Hautprofil</label><select id="skinType"><option>II–III</option><option>I</option><option>II</option><option>III</option></select>
-<label>Standard-SPF</label><select id="defaultSpf"><option selected>50</option><option>30</option></select>
-<label>Wetterdarstellung testen</label>
-<select id="weatherCondition">
-<option value="sunny">Sonnig</option>
-<option value="partly">Teilweise bewölkt</option>
-<option value="cloudy">Bewölkt</option>
-<option value="rainy">Regen</option>
-</select>
-<label>Tageszeit testen</label>
-<select id="timePreview">
-<option value="auto">Automatisch</option>
-<option value="morning">Morgen</option>
-<option value="day">Tag</option>
-<option value="evening">Abend</option>
-<option value="night">Nacht</option>
-</select>
-<button onclick="saveProfile()">Profil speichern</button>
-<p id="profileStatus" class="small"></p>
-</div></section>
+<section id="profile">
+  <h1>Profil</h1>
+  <div class="card">
+    <label>Name</label><input id="name" value="Ruby">
+    <label>Alter</label><input id="age" value="19">
+    <label>Ort</label><input id="location" value="Wolfsburg">
+    <label>Hautprofil</label>
+    <select id="skinType"><option>II–III</option><option>I</option><option>II</option><option>III</option></select>
+    <label>Standard-SPF</label>
+    <select id="defaultSpf"><option selected>50</option><option>30</option></select>
+
+    <label>Wetter testen</label>
+    <select id="weatherCondition">
+      <option value="sunny">Sonnig</option>
+      <option value="partly">Teilweise bewölkt</option>
+      <option value="cloudy">Bewölkt</option>
+      <option value="rainy">Regen</option>
+      <option value="storm">Gewitter</option>
+      <option value="snow">Schnee</option>
+      <option value="wind">Wind</option>
+      <option value="rainbow">Regenbogen</option>
+      <option value="fog">Nebel</option>
+    </select>
+
+    <label>Tageszeit testen</label>
+    <select id="timePreview">
+      <option value="auto">Automatisch</option>
+      <option value="morning">Morgen</option>
+      <option value="day">Tag</option>
+      <option value="evening">Abend</option>
+      <option value="night">Nacht</option>
+    </select>
+
+    <button onclick="saveProfile()">Profil speichern</button>
+    <p id="profileStatus" class="small"></p>
+  </div>
+</section>
 </div>
 
 <div class="nav">
-<button class="on" onclick="show('today',this)"><span>☀️</span>Heute</button>
-<button onclick="show('products',this)"><span>🧴</span>Produkte</button>
-<button onclick="show('skin',this)"><span>📸</span>Haut</button>
-<button onclick="show('history',this)"><span>📅</span>Verlauf</button>
-<button onclick="show('profile',this)"><span>👤</span>Profil</button>
+  <button class="on" onclick="show('today',this)">
+    <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="7" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="16" y1="2" x2="16" y2="6"/><line x1="16" y1="26" x2="16" y2="30"/><line x1="2" y1="16" x2="6" y2="16"/><line x1="26" y1="16" x2="30" y2="16"/><line x1="6" y1="6" x2="9" y2="9"/><line x1="23" y1="23" x2="26" y2="26"/><line x1="6" y1="26" x2="9" y2="23"/><line x1="23" y1="9" x2="26" y2="6"/></g></svg>
+    Heute
+  </button>
+  <button onclick="show('products',this)">
+    <svg viewBox="0 0 32 32"><path d="M11 5h10v5l3 4v13H8V14l3-4z" fill="none" stroke="currentColor" stroke-width="2"/><rect x="12" y="2" width="8" height="4" rx="1" fill="currentColor"/><path d="M12 17h8" stroke="currentColor" stroke-width="2"/></svg>
+    Produkte
+  </button>
+  <button onclick="show('skin',this)">
+    <svg viewBox="0 0 32 32"><path d="M16 28c7 0 11-5 11-11S23 5 16 5 5 11 5 17s4 11 11 11z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="14" r="1.5" fill="currentColor"/><circle cx="20" cy="14" r="1.5" fill="currentColor"/><path d="M12 20q4 3 8 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Haut
+  </button>
+  <button onclick="show('history',this)">
+    <svg viewBox="0 0 32 32"><rect x="5" y="7" width="22" height="20" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 4v6M23 4v6M5 12h22" stroke="currentColor" stroke-width="2"/><circle cx="11" cy="18" r="1.5" fill="currentColor"/><circle cx="16" cy="18" r="1.5" fill="currentColor"/><circle cx="21" cy="18" r="1.5" fill="currentColor"/></svg>
+    Verlauf
+  </button>
+  <button onclick="show('profile',this)">
+    <svg viewBox="0 0 32 32"><circle cx="16" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 28c1-6 5-9 10-9s9 3 10 9" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+    Profil
+  </button>
 </div>
 
 <script>
-let interval=null,remaining=1680;
+let interval=null, remaining=1680;
 let sessions=JSON.parse(localStorage.getItem('sessions')||'[]');
 let skinChecks=JSON.parse(localStorage.getItem('skinChecks')||'[]');
-let profile=JSON.parse(localStorage.getItem('profile')||'{"name":"Ruby","age":"19","skinType":"II–III","spf":"50","weather":"sunny","timePreview":"auto"}');
+let profile=JSON.parse(localStorage.getItem('profile')||'{"name":"Ruby","age":"19","location":"Wolfsburg","skinType":"II–III","spf":"50","weather":"sunny","timePreview":"auto"}');
 
-const weatherValues={
- sunny:{score:86,uv:'5,8'},
- partly:{score:74,uv:'4,6'},
- cloudy:{score:58,uv:'3,1'},
- rainy:{score:22,uv:'1,4'}
-};
-
-const visualMatrix={
- morning:{
-  sunny:{icon:'🌅',label:'Sonniger Morgen · Sonnenaufgang'},
-  partly:{icon:'🌤️',label:'Morgen mit Sonne und Wolken'},
-  cloudy:{icon:'☁️',label:'Bewölkter Morgen'},
-  rainy:{icon:'🌧️',label:'Regnerischer Morgen'}
- },
- day:{
-  sunny:{icon:'☀️',label:'Sonniger Tag'},
-  partly:{icon:'🌤️',label:'Sonne und Wolken am Tag'},
-  cloudy:{icon:'☁️',label:'Bewölkter Tag'},
-  rainy:{icon:'🌧️',label:'Regnerischer Tag'}
- },
- evening:{
-  sunny:{icon:'🌇',label:'Sonniger Abend · Sonnenuntergang'},
-  partly:{icon:'🌥️',label:'Abendhimmel mit Wolken'},
-  cloudy:{icon:'☁️',label:'Bewölkter Abend'},
-  rainy:{icon:'🌧️',label:'Regnerischer Abend'}
- },
- night:{
-  sunny:{icon:'🌙',label:'Klare Nacht'},
-  partly:{icon:'☁️🌙',label:'Leicht bewölkte Nacht'},
-  cloudy:{icon:'☁️',label:'Bewölkte Nacht'},
-  rainy:{icon:'🌧️',label:'Regnerische Nacht'}
- }
+const weatherData={
+ sunny:{label:'Sonnig',temp:22,feels:24,score:86,uv:'5,8'},
+ partly:{label:'Teilweise bewölkt',temp:21,feels:22,score:74,uv:'4,6'},
+ cloudy:{label:'Bewölkt',temp:19,feels:18,score:58,uv:'3,1'},
+ rainy:{label:'Leichter Regen',temp:17,feels:16,score:34,uv:'1,8'},
+ storm:{label:'Gewitter',temp:18,feels:17,score:20,uv:'1,2'},
+ snow:{label:'Schneefall',temp:1,feels:-2,score:12,uv:'0,8'},
+ wind:{label:'Windig',temp:16,feels:14,score:48,uv:'2,4'},
+ rainbow:{label:'Aufklarend',temp:20,feels:20,score:64,uv:'3,9'},
+ fog:{label:'Nebel',temp:12,feels:11,score:28,uv:'1,0'}
 };
 
 function getAutomaticPeriod(){
@@ -185,57 +347,200 @@ function getAutomaticPeriod(){
 function getPeriod(){
  return profile.timePreview && profile.timePreview!=='auto' ? profile.timePreview : getAutomaticPeriod();
 }
-function greetingData(period){
- return {
-  morning:['Guten Morgen','🌅','Ein neuer Sonnentag beginnt.'],
-  day:['Guten Tag','☀️','Lerne deine Sonne kennen.'],
-  evening:['Guten Abend','🌇','Der Tag klingt langsam aus.'],
-  night:['Gute Nacht','🌙','Zeit für Ruhe und Regeneration.']
- }[period];
+function greeting(period){
+ return {morning:'Guten Morgen',day:'Guten Tag',evening:'Guten Abend',night:'Gute Nacht'}[period];
 }
-function init(){
- const p=getPeriod();
- document.body.className=p;
- splash.className=p;
- const g=greetingData(p);
- splashIcon.textContent=g[1];
- splashText.textContent=g[2];
- setTimeout(()=>splash.classList.add('hide'),1800);
- name.value=profile.name; age.value=profile.age; skinType.value=profile.skinType;
- defaultSpf.value=profile.spf; weatherCondition.value=profile.weather;
- timePreview.value=profile.timePreview||'auto';
- updateHome(); renderSkin();
+
+function face(x,y,scale=1){
+ return `
+ <circle cx="${x-13*scale}" cy="${y}" r="${3.2*scale}" class="face-eye"/>
+ <circle cx="${x+13*scale}" cy="${y}" r="${3.2*scale}" class="face-eye"/>
+ <path d="M ${x-10*scale} ${y+12*scale} Q ${x} ${y+21*scale} ${x+10*scale} ${y+12*scale}" class="face-mouth"/>
+ <ellipse cx="${x-24*scale}" cy="${y+10*scale}" rx="${8*scale}" ry="${4.5*scale}" class="cheek"/>
+ <ellipse cx="${x+24*scale}" cy="${y+10*scale}" rx="${8*scale}" ry="${4.5*scale}" class="cheek"/>`;
 }
+
+function sunSvg(period){
+ const cy=period==='morning'?102:period==='evening'?112:78;
+ const rays=Array.from({length:12},(_,i)=>{
+   const a=i*Math.PI/6, x1=125+Math.cos(a)*42, y1=cy+Math.sin(a)*42, x2=125+Math.cos(a)*58, y2=cy+Math.sin(a)*58;
+   return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#f6be49" stroke-width="8" stroke-linecap="round"/>`;
+ }).join('');
+ return `<svg viewBox="0 0 250 180">${rays}<circle cx="125" cy="${cy}" r="40" fill="#f8cf6c"/>${face(125,cy-5,.8)}${period==='morning'||period==='evening'?'<rect x="0" y="138" width="250" height="42" fill="rgba(255,255,255,.25)"/>':''}</svg>`;
+}
+function cloudBase(fill='#fffaf3',x=40,y=55,scale=1){
+ return `<g transform="translate(${x} ${y}) scale(${scale})">
+ <circle cx="45" cy="46" r="30" fill="${fill}"/>
+ <circle cx="85" cy="32" r="38" fill="${fill}"/>
+ <circle cx="126" cy="47" r="31" fill="${fill}"/>
+ <rect x="35" y="46" width="105" height="35" rx="18" fill="${fill}"/>
+ ${face(88,52,.75)}
+ </g>`;
+}
+function partlySvg(period){
+ return `<svg viewBox="0 0 250 180">
+ <circle cx="92" cy="${period==='morning'?83:70}" r="34" fill="#f7c95f"/>
+ ${face(92,(period==='morning'?83:70)-4,.6)}
+ ${cloudBase('#fffaf3',55,55,.9)}
+ </svg>`;
+}
+function cloudySvg(){return `<svg viewBox="0 0 250 180">${cloudBase('#fffaf3',38,40,1.15)}</svg>`}
+function rainySvg(dark=false){
+ return `<svg viewBox="0 0 250 180">
+ ${cloudBase(dark?'#a9abad':'#c8c9c7',38,25,1.15)}
+ <g>${[70,105,140,175].map((x,i)=>`<path d="M${x} 130 C${x-7} 142 ${x-6} 151 ${x} 154 C${x+7} 151 ${x+8} 142 ${x} 130Z" class="drop" style="animation:rain 1.8s ${i*.25}s infinite"/>`).join('')}</g>
+ </svg>`;
+}
+function stormSvg(){
+ return `<svg viewBox="0 0 250 180">
+ ${cloudBase('#8f9294',38,18,1.15)}
+ <path d="M118 112 L96 146 H116 L103 174 L145 132 H126 L143 112Z" fill="#f4c544"/>
+ <path d="M68 128 C60 142 62 151 68 154 C75 151 77 142 68 128Z" class="drop"/>
+ <path d="M177 128 C169 142 171 151 177 154 C184 151 186 142 177 128Z" class="drop"/>
+ </svg>`;
+}
+function snowSvg(){
+ return `<svg viewBox="0 0 250 180">${cloudBase('#fffaf3',38,20,1.15)}
+ <g fill="#ffffff" stroke="#b9dce5" stroke-width="2">${[75,112,150,183].map((x,i)=>`<g transform="translate(${x} ${135+(i%2)*18})"><line x1="-8" y1="0" x2="8" y2="0"/><line x1="0" y1="-8" x2="0" y2="8"/><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g>`).join('')}</g></svg>`;
+}
+function windSvg(){
+ return `<svg viewBox="0 0 250 180">${cloudBase('#c6dde7',28,38,1.05)}
+ <g fill="none" stroke="#8bb7cf" stroke-width="7" stroke-linecap="round">
+ <path d="M145 90 C180 70 215 82 205 101 C198 114 184 108 187 99"/>
+ <path d="M145 115 C178 104 220 115 211 132 C206 143 192 139 194 130"/>
+ </g></svg>`;
+}
+function rainbowSvg(){
+ return `<svg class="rainbow" viewBox="0 0 250 180">
+ <path d="M45 145 A80 80 0 0 1 205 145" fill="none" stroke="#f3a6a6" stroke-width="18"/>
+ <path d="M55 145 A70 70 0 0 1 195 145" fill="none" stroke="#f6cf87" stroke-width="16"/>
+ <path d="M65 145 A60 60 0 0 1 185 145" fill="none" stroke="#c7dfa8" stroke-width="14"/>
+ <path d="M75 145 A50 50 0 0 1 175 145" fill="none" stroke="#a9c7e7" stroke-width="12"/>
+ ${cloudBase('#fffaf3',5,92,.55)}
+ ${cloudBase('#fffaf3',150,92,.55)}
+ </svg>`;
+}
+function fogSvg(){
+ return `<svg viewBox="0 0 250 180">${cloudBase('#dfe5e7',38,22,1.1)}
+ <g stroke="#eef3f4" stroke-width="10" stroke-linecap="round" opacity=".95">
+ <line x1="50" y1="125" x2="200" y2="125"/>
+ <line x1="65" y1="147" x2="185" y2="147"/>
+ <line x1="85" y1="169" x2="165" y2="169"/>
+ </g></svg>`;
+}
+function moonSvg(){
+ return `<svg viewBox="0 0 250 180">
+ <circle cx="125" cy="80" r="44" fill="#f7efc1"/>
+ <circle cx="145" cy="65" r="42" fill="#243658"/>
+ ${face(112,80,.7)}
+ <circle cx="48" cy="42" r="4" class="star"/><circle cx="200" cy="52" r="5" class="star" style="animation-delay:.7s"/>
+ <circle cx="58" cy="120" r="3" class="star" style="animation-delay:1.2s"/><circle cx="205" cy="120" r="3.5" class="star" style="animation-delay:.4s"/>
+ </svg>`;
+}
+function renderWeatherArt(weather,period){
+ if(period==='night' && weather==='sunny') return moonSvg();
+ if(weather==='sunny') return sunSvg(period);
+ if(weather==='partly') return partlySvg(period);
+ if(weather==='cloudy') return cloudySvg();
+ if(weather==='rainy') return rainySvg();
+ if(weather==='storm') return stormSvg();
+ if(weather==='snow') return snowSvg();
+ if(weather==='wind') return windSvg();
+ if(weather==='rainbow') return rainbowSvg();
+ if(weather==='fog') return fogSvg();
+ return sunSvg(period);
+}
+
 function updateHome(){
  const period=getPeriod();
- const weather=profile.weather||'sunny';
- const g=greetingData(period);
- const v=visualMatrix[period][weather];
- const w=weatherValues[weather];
+ const w=profile.weather||'sunny';
+ const d=weatherData[w];
  document.body.className=period;
- greet.textContent=`${g[0]}, ${profile.name||'Ruby'} ${g[1]}`;
- hero.className=`hero ${period} ${weather}`;
- weatherVisual.textContent=v.icon;
- weatherLabel.textContent=v.label;
- score.textContent=w.score;
- uv.textContent=`UV ${w.uv}`;
+ greet.textContent=`${greeting(period)}, ${profile.name||'Ruby'}!`;
+ weatherStage.className=`weather-stage ${period}`;
+ weatherArt.innerHTML=renderWeatherArt(w,period);
+ temperature.textContent=`${d.temp} °C`;
+ condition.textContent=d.label;
+ feels.textContent=`Gefühlt ${d.feels} °C · ${profile.location||'Wolfsburg'}`;
+ scoreNum.textContent=d.score;
+ uvBadge.textContent=`UV ${d.uv}`;
 }
-function show(id,b){document.querySelectorAll('section').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('on'));if(b)b.classList.add('on');if(id==='history')renderHistory()}
-function startTimer(){remaining=1680;show('timerScreen');updateTimer();interval=setInterval(()=>{remaining--;updateTimer();if(remaining<=0)stopTimer()},1000)}
+
+function init(){
+ const period=getPeriod();
+ document.body.className=period;
+ splash.className=period;
+ splashText.textContent={morning:'Ein neuer Sonnentag beginnt.',day:'Lerne deine Sonne kennen.',evening:'Der Tag klingt langsam aus.',night:'Zeit für Ruhe und Regeneration.'}[period];
+ setTimeout(()=>splash.classList.add('hide'),1800);
+
+ name.value=profile.name||'Ruby';
+ age.value=profile.age||'19';
+ location.value=profile.location||'Wolfsburg';
+ skinType.value=profile.skinType||'II–III';
+ defaultSpf.value=profile.spf||'50';
+ weatherCondition.value=profile.weather||'sunny';
+ timePreview.value=profile.timePreview||'auto';
+ updateHome();
+ renderSkin();
+}
+
+function show(id,b){
+ document.querySelectorAll('section').forEach(x=>x.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
+ document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('on'));
+ if(b)b.classList.add('on');
+ if(id==='history')renderHistory();
+}
+function startTimer(){
+ remaining=1680;show('timerScreen');updateTimer();
+ interval=setInterval(()=>{remaining--;updateTimer();if(remaining<=0)stopTimer()},1000);
+}
 function updateTimer(){timer.textContent=`${String(Math.floor(remaining/60)).padStart(2,'0')}:${String(remaining%60).padStart(2,'0')}`}
-function stopTimer(){if(interval)clearInterval(interval);sessions.unshift({date:new Date().toLocaleString('de-DE'),minutes:Math.max(1,Math.round((1680-remaining)/60)),uv:'5,8',spf:profile.spf});localStorage.setItem('sessions',JSON.stringify(sessions));show('history',document.querySelectorAll('.nav button')[3])}
-function renderHistory(){historyList.innerHTML=sessions.length?sessions.map(x=>`<p><b>${x.date}</b><br>${x.minutes} Minuten · UV ${x.uv} · SPF ${x.spf}</p>`).join(''):'<p>Noch keine Sitzung gespeichert.</p>'}
-function saveProduct(){localStorage.setItem('product',JSON.stringify({brand:brand.value,name:productName.value,spf:spf.value}));savedProduct.textContent='Produkt gespeichert.'}
-function saveSkin(){skinChecks.unshift({date:new Date().toLocaleString('de-DE'),reaction:reaction.value,note:skinNote.value});localStorage.setItem('skinChecks',JSON.stringify(skinChecks));renderSkin()}
-function renderSkin(){skinLog.innerHTML=skinChecks.map(x=>`<p><b>${x.date}</b><br>${x.reaction} ${x.note?'- '+x.note:''}</p>`).join('')}
+function stopTimer(){
+ if(interval)clearInterval(interval);
+ sessions.unshift({date:new Date().toLocaleString('de-DE'),minutes:Math.max(1,Math.round((1680-remaining)/60)),uv:weatherData[profile.weather||'sunny'].uv,spf:profile.spf});
+ localStorage.setItem('sessions',JSON.stringify(sessions));
+ show('history',document.querySelectorAll('.nav button')[3]);
+}
+function renderHistory(){
+ historyList.innerHTML=sessions.length?sessions.map(x=>`<p><b>${x.date}</b><br>${x.minutes} Minuten · UV ${x.uv} · SPF ${x.spf}</p>`).join(''):'<p>Noch keine Sitzung gespeichert.</p>';
+}
+function saveProduct(){
+ localStorage.setItem('product',JSON.stringify({brand:brand.value,name:productName.value,spf:spf.value}));
+ savedProduct.textContent='Produkt gespeichert.';
+}
+function saveSkin(){
+ skinChecks.unshift({date:new Date().toLocaleString('de-DE'),reaction:reaction.value,note:skinNote.value});
+ localStorage.setItem('skinChecks',JSON.stringify(skinChecks));renderSkin();
+}
+function renderSkin(){
+ skinLog.innerHTML=skinChecks.map(x=>`<p><b>${x.date}</b><br>${x.reaction} ${x.note?'- '+x.note:''}</p>`).join('');
+}
 function saveProfile(){
- profile={name:name.value.trim()||'Ruby',age:age.value,skinType:skinType.value,spf:defaultSpf.value,weather:weatherCondition.value,timePreview:timePreview.value};
+ profile={
+  name:name.value.trim()||'Ruby',
+  age:age.value,
+  location:location.value.trim()||'Wolfsburg',
+  skinType:skinType.value,
+  spf:defaultSpf.value,
+  weather:weatherCondition.value,
+  timePreview:timePreview.value
+ };
  localStorage.setItem('profile',JSON.stringify(profile));
  updateHome();
- profileStatus.textContent='Profil gespeichert und Ansicht aktualisiert.';
+ profileStatus.textContent='Profil gespeichert und Startseite aktualisiert.';
 }
-function preview(i,p){document.getElementById(i).addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>document.getElementById(p).innerHTML=`<img src="${r.result}" style="width:100%;height:100%;object-fit:cover">`;r.readAsDataURL(f)})}
-preview('productPhoto','productPreview');preview('skinPhoto','skinPreview');init();
+function preview(i,p){
+ document.getElementById(i).addEventListener('change',e=>{
+  let f=e.target.files[0];if(!f)return;
+  let r=new FileReader();
+  r.onload=()=>document.getElementById(p).innerHTML=`<img src="${r.result}" style="width:100%;height:100%;object-fit:cover">`;
+  r.readAsDataURL(f);
+ });
+}
+preview('productPhoto','productPreview');
+preview('skinPhoto','skinPreview');
+init();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('./service-worker.js');
 </script>
 </body>

@@ -1,11 +1,18 @@
-Solara Beta 0.4
+SOLARA BETA 0.5
 
 Neu:
-- 16 Kombinationen aus Tageszeit und Wetter
-- Sonnenaufgang, Tageshimmel, Sonnenuntergang und Nacht
-- jeweils Varianten für Sonne, teilweise bewölkt, bewölkt und Regen
-- Testschalter für Tageszeit im Profil
-- automatische Tageszeit bleibt Standard
+- keine Apple-Emojis mehr
+- eigene Pastell-Kawaii-Wetterfiguren als SVG
+- Sonne, teilweise bewölkt, Wolken, Regen, Gewitter, Schnee, Wind, Regenbogen, Nebel und Mond
+- rosa Wangen und dezentes Lächeln
+- eigene Navigationssymbole für Heute, Produkte, Haut, Verlauf und Profil
+- ruhige Animationen
+- automatische Kombination aus Tageszeit und Wetter
+- Temperatur, gefühlte Temperatur, Ort, Wetterbeschreibung, UV und Solara Score direkt auf der Startseite
 
-Hinweis:
-Die Wetterlage ist in dieser Beta noch manuell auswählbar. Echte Live-Wetterdaten folgen später.
+Zum Aktualisieren:
+1. ZIP entpacken.
+2. Alle Dateien im GitHub-Repository ersetzen.
+3. Commit changes.
+4. Unter Actions auf grünen Haken warten.
+5. App auf dem iPhone vollständig schließen und neu öffnen.
