@@ -3,107 +3,72 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f6efe4">
+<meta name="theme-color" content="#fff4df">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Solara">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Solara</title>
 <style>
-:root{--bg:#f6efe4;--card:#fff;--text:#202020;--accent:#d6a23a;--muted:#707070}
+:root{--gold:#e6ad38;--ink:#2c2a27;--muted:#756c62}
 *{box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;background:var(--bg);color:var(--text)}
-#app{max-width:430px;margin:auto;padding:calc(18px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom))}
-section{display:none}.active-screen{display:block}
-.card{background:var(--card);border-radius:20px;padding:18px;margin:14px 0;box-shadow:0 8px 24px rgba(0,0,0,.06)}
-button{width:100%;padding:15px;margin:7px 0;border:0;border-radius:14px;background:var(--accent);color:#fff;font-size:16px;font-weight:600}
-button.secondary{background:#e6e1d9;color:#222}
-input,select{width:100%;padding:13px;margin:6px 0 12px;border:1px solid #ddd;border-radius:12px;background:#fff;font-size:16px}
-.score{font-size:78px;text-align:center;font-weight:700}
-.timer{font-size:62px;text-align:center;font-weight:700}
-.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(430px,100%);display:flex;background:rgba(255,255,255,.96);border-top:1px solid #ddd;padding-bottom:env(safe-area-inset-bottom);backdrop-filter:blur(14px)}
-.nav button{background:transparent;color:#333;border-radius:0;margin:0;padding:12px 2px;font-size:11px}
-.small{color:var(--muted);font-size:14px}
-.photo-box{height:150px;background:#e7e1d7;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:42px;overflow:hidden}
-h1{margin-bottom:4px}
-.center{text-align:center}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(#fff8e9,#f6e6c8);color:var(--ink)}
+#splash{position:fixed;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle,#fff8c9,#f5b845);transition:.6s}
+#splash.hide{opacity:0;visibility:hidden}.sun{font-size:90px}.brand{font-size:36px;margin:10px 0 2px}
+#app{max-width:430px;margin:auto;padding:20px 16px 105px}section{display:none}.active{display:block}
+.hero{min-height:315px;border-radius:30px;padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;box-shadow:0 18px 45px rgba(129,89,28,.16)}
+.sunny{background:radial-gradient(circle at 50% 30%,#fff9c7,#ffd76a 32%,#ef9c2c)}
+.partly{background:linear-gradient(#bfe8f2,#f4d58b)}.cloudy{background:linear-gradient(#dce8ed,#b9d0da)}.rainy{background:linear-gradient(#8099ad,#52697d);color:white}
+.weather-icon{font-size:112px}.score{position:absolute;top:88px;font-size:72px;font-weight:800}.uv{font-size:30px;font-weight:800;background:rgba(255,255,255,.45);padding:8px 16px;border-radius:18px}
+.card{background:rgba(255,255,255,.92);border-radius:22px;padding:18px;margin:14px 0;box-shadow:0 10px 28px rgba(83,61,23,.08)}
+button{width:100%;padding:15px;border:0;border-radius:16px;background:linear-gradient(135deg,#e4a72d,#efbd51);color:white;font-size:16px;font-weight:700;margin:7px 0}
+input,select{width:100%;padding:13px;margin:6px 0 12px;border:1px solid #ded3c3;border-radius:12px;background:white;font-size:16px}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(430px,100%);display:grid;grid-template-columns:repeat(5,1fr);background:rgba(255,255,255,.97);padding:8px 6px calc(8px + env(safe-area-inset-bottom));border-top:1px solid #e5d9c9}
+.nav button{background:transparent;color:#6c6258;padding:8px 2px;font-size:11px;border-radius:14px}.nav button span{display:block;font-size:23px}.nav button.on{background:#fff0cf;color:#9a6400}
+.photo{height:145px;border-radius:14px;background:#eee2cf;display:flex;align-items:center;justify-content:center;font-size:40px;overflow:hidden}.timer{font-size:66px;text-align:center;font-weight:800}.small{font-size:14px;color:var(--muted)}
 </style>
 </head>
 <body>
+<div id="splash"><div class="sun">☀️</div><h1 class="brand">Solara</h1><p>Lerne deine Sonne kennen.</p></div>
 <div id="app">
-<section id="today" class="active-screen">
-<h1>Solara</h1><p>Guten Morgen, Max</p>
-<div class="card"><div class="score">86</div><p class="center">Solara Score</p><p class="center">Gute Bedingungen</p></div>
-<div class="card"><h3>Heutige Empfehlung</h3><p><b>Sonnenfenster:</b> 12:20–12:48</p><p><b>Dauer:</b> 28 Minuten</p><p><b>UV:</b> 5,8</p><p><b>Schutz:</b> SPF 50</p><button onclick="startTimer()">Sonnenmodus starten</button></div>
+<section id="today" class="active">
+<h1>Solara</h1><p id="greet">Guten Morgen, Ruby ☀️</p>
+<div id="hero" class="hero sunny"><div id="wIcon" class="weather-icon">☀️</div><div id="score" class="score">86</div><div id="uv" class="uv">UV 5,8</div><p id="wLabel"><b>Sonnig · gute Bedingungen</b></p></div>
+<div class="card"><h3>Deine heutige Empfehlung</h3><p><b>Sonnenfenster:</b> 12:20–12:48</p><p><b>Dauer:</b> 28 Minuten</p><p><b>Sonnenschutz:</b> SPF 50</p><button onclick="startTimer()">Sonnenzeit starten</button></div>
 </section>
-
-<section id="timerScreen">
-<h1>Sonnenmodus</h1>
-<div class="card"><div id="timer" class="timer">28:00</div><p class="center">Verbleibende Zeit</p><p class="center">SPF 50 aktiv</p><button class="secondary" onclick="stopTimer()">Sitzung beenden</button></div>
-</section>
-
-<section id="products">
-<h1>Produkte</h1>
-<div class="card"><h3>Produkt hinzufügen</h3>
-<input id="productPhoto" type="file" accept="image/*" capture="environment">
-<div id="productPreview" class="photo-box">📷</div>
-<label>Marke</label><input id="brand" placeholder="z. B. Nivea">
-<label>Produktname</label><input id="productName" placeholder="z. B. Sun Protect">
-<label>SPF</label><select id="spf"><option>15</option><option>20</option><option>30</option><option selected>50</option><option>50+</option></select>
-<label>Kategorie</label><select id="category"><option>Sonnencreme</option><option>Spray</option><option>Öl</option><option>Bräunungsbeschleuniger</option></select>
-<button onclick="saveProduct()">Produkt speichern</button><p id="savedProduct" class="small"></p></div>
-</section>
-
-<section id="skin">
-<h1>Haut-Timeline</h1>
-<div class="card">
-<input id="skinPhoto" type="file" accept="image/*" capture="user">
-<div id="skinPreview" class="photo-box">📸</div>
-<label>Hautreaktion</label><select id="reaction"><option>Normal</option><option>Warm</option><option>Leicht gerötet</option><option>Stark gerötet</option></select>
-<label>Notiz</label><input id="skinNote" placeholder="z. B. linke Wange">
-<button onclick="saveSkin()">Hautcheck speichern</button><div id="skinLog"></div></div>
-<p class="small">Nur zur Dokumentation, keine medizinische Diagnose.</p>
-</section>
-
-<section id="history"><h1>Verlauf</h1><div class="card" id="historyList"><p>Noch keine Sitzung gespeichert.</p></div></section>
-
-<section id="profile">
-<h1>Profil</h1><div class="card">
-<label>Name</label><input id="name" value="Max">
-<label>Alter</label><input id="age" value="19">
-<label>Hautprofil</label><select id="skinType"><option>II–III</option><option>I</option><option>II</option><option>III</option><option>IV</option></select>
-<label>Standard-SPF</label><select id="defaultSpf"><option selected>50</option><option>30</option><option>20</option></select>
-<button onclick="saveProfile()">Profil speichern</button><p id="profileStatus" class="small"></p></div>
-</section>
+<section id="timerScreen"><h1>Deine Sonnenzeit</h1><div class="card"><div id="timer" class="timer">28:00</div><p style="text-align:center">Verbleibende Zeit</p><button onclick="stopTimer()">Sitzung beenden</button></div></section>
+<section id="products"><h1>Produkte</h1><div class="card"><input id="productPhoto" type="file" accept="image/*" capture="environment"><div id="productPreview" class="photo">📷</div><label>Marke</label><input id="brand"><label>Produkt</label><input id="productName"><label>SPF</label><select id="spf"><option>30</option><option selected>50</option><option>50+</option></select><button onclick="saveProduct()">Speichern</button><p id="savedProduct" class="small"></p></div></section>
+<section id="skin"><h1>Haut</h1><div class="card"><input id="skinPhoto" type="file" accept="image/*" capture="user"><div id="skinPreview" class="photo">📸</div><label>Hautreaktion</label><select id="reaction"><option>Normal</option><option>Warm</option><option>Leicht gerötet</option><option>Stark gerötet</option></select><label>Notiz</label><input id="skinNote"><button onclick="saveSkin()">Hautcheck speichern</button><div id="skinLog"></div></div><p class="small">Nur Dokumentation, keine Diagnose.</p></section>
+<section id="history"><h1>Verlauf</h1><div id="historyList" class="card"><p>Noch keine Sitzung gespeichert.</p></div></section>
+<section id="profile"><h1>Profil</h1><div class="card"><label>Name</label><input id="name" value="Ruby"><label>Alter</label><input id="age" value="19"><label>Hautprofil</label><select id="skinType"><option>II–III</option><option>I</option><option>II</option><option>III</option></select><label>Standard-SPF</label><select id="defaultSpf"><option selected>50</option><option>30</option></select><label>Wetterdarstellung testen</label><select id="weatherCondition"><option value="sunny">Sonnig</option><option value="partly">Teilweise bewölkt</option><option value="cloudy">Bewölkt</option><option value="rainy">Regen</option></select><button onclick="saveProfile()">Profil speichern</button><p id="profileStatus" class="small"></p></div></section>
 </div>
-
 <div class="nav">
-<button onclick="showScreen('today')">Heute</button>
-<button onclick="showScreen('products')">Produkte</button>
-<button onclick="showScreen('skin')">Haut</button>
-<button onclick="showScreen('history')">Verlauf</button>
-<button onclick="showScreen('profile')">Profil</button>
+<button class="on" onclick="show('today',this)"><span>☀️</span>Heute</button>
+<button onclick="show('products',this)"><span>🧴</span>Produkte</button>
+<button onclick="show('skin',this)"><span>📸</span>Haut</button>
+<button onclick="show('history',this)"><span>📅</span>Verlauf</button>
+<button onclick="show('profile',this)"><span>👤</span>Profil</button>
 </div>
-
 <script>
-let interval=null, remaining=28*60;
+let interval=null,remaining=1680;
 let sessions=JSON.parse(localStorage.getItem('sessions')||'[]');
 let skinChecks=JSON.parse(localStorage.getItem('skinChecks')||'[]');
-
-function showScreen(id){document.querySelectorAll('section').forEach(s=>s.classList.remove('active-screen'));document.getElementById(id).classList.add('active-screen');if(id==='history')renderHistory()}
-function startTimer(){remaining=28*60;showScreen('timerScreen');updateTimer();interval=setInterval(()=>{remaining--;updateTimer();if(remaining<=0)finishSession()},1000)}
+let profile=JSON.parse(localStorage.getItem('profile')||'{"name":"Ruby","age":"19","skinType":"II–III","spf":"50","weather":"sunny"}');
+const wm={sunny:['☀️','Sonnig · gute Bedingungen',86,'5,8'],partly:['🌤️','Teilweise bewölkt · wechselhaft',74,'4,6'],cloudy:['☁️','Bewölkt · reduzierte Einstrahlung',58,'3,1'],rainy:['🌧️','Regen · heute kein Sonnenfenster',22,'1,4']};
+function init(){setTimeout(()=>splash.classList.add('hide'),1800);name.value=profile.name;age.value=profile.age;skinType.value=profile.skinType;defaultSpf.value=profile.spf;weatherCondition.value=profile.weather;updateHome();renderSkin()}
+function updateHome(){greet.textContent=`Guten Morgen, ${profile.name||'Ruby'} ☀️`;let w=wm[profile.weather||'sunny'];hero.className=`hero ${profile.weather||'sunny'}`;wIcon.textContent=w[0];wLabel.innerHTML=`<b>${w[1]}</b>`;score.textContent=w[2];uv.textContent=`UV ${w[3]}`}
+function show(id,b){document.querySelectorAll('section').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('on'));if(b)b.classList.add('on');if(id==='history')renderHistory()}
+function startTimer(){remaining=1680;show('timerScreen');updateTimer();interval=setInterval(()=>{remaining--;updateTimer();if(remaining<=0)stopTimer()},1000)}
 function updateTimer(){timer.textContent=`${String(Math.floor(remaining/60)).padStart(2,'0')}:${String(remaining%60).padStart(2,'0')}`}
-function stopTimer(){if(interval)clearInterval(interval);let used=28*60-remaining;sessions.unshift({date:new Date().toLocaleString('de-DE'),minutes:Math.max(1,Math.round(used/60)),uv:'5,8',spf:'50'});localStorage.setItem('sessions',JSON.stringify(sessions));alert('Sitzung gespeichert.');showScreen('history')}
-function finishSession(){clearInterval(interval);sessions.unshift({date:new Date().toLocaleString('de-DE'),minutes:28,uv:'5,8',spf:'50'});localStorage.setItem('sessions',JSON.stringify(sessions));alert('Deine geplante Sonnenzeit ist beendet.');showScreen('history')}
-function renderHistory(){historyList.innerHTML=sessions.length?sessions.map(x=>`<div style="padding:10px 0;border-bottom:1px solid #ddd"><b>${x.date}</b><br>${x.minutes} Minuten · UV ${x.uv} · SPF ${x.spf}</div>`).join(''):'<p>Noch keine Sitzung gespeichert.</p>'}
-function saveProduct(){let p={brand:brand.value,name:productName.value,spf:spf.value,category:category.value};localStorage.setItem('product',JSON.stringify(p));savedProduct.textContent=`Gespeichert: ${p.brand} ${p.name}, SPF ${p.spf}, ${p.category}`}
-function saveSkin(){let item={date:new Date().toLocaleString('de-DE'),reaction:reaction.value,note:skinNote.value};skinChecks.unshift(item);localStorage.setItem('skinChecks',JSON.stringify(skinChecks));renderSkin()}
+function stopTimer(){if(interval)clearInterval(interval);sessions.unshift({date:new Date().toLocaleString('de-DE'),minutes:Math.max(1,Math.round((1680-remaining)/60)),uv:'5,8',spf:profile.spf});localStorage.setItem('sessions',JSON.stringify(sessions));show('history',document.querySelectorAll('.nav button')[3])}
+function renderHistory(){historyList.innerHTML=sessions.length?sessions.map(x=>`<p><b>${x.date}</b><br>${x.minutes} Minuten · UV ${x.uv} · SPF ${x.spf}</p>`).join(''):'<p>Noch keine Sitzung gespeichert.</p>'}
+function saveProduct(){localStorage.setItem('product',JSON.stringify({brand:brand.value,name:productName.value,spf:spf.value}));savedProduct.textContent='Produkt gespeichert.'}
+function saveSkin(){skinChecks.unshift({date:new Date().toLocaleString('de-DE'),reaction:reaction.value,note:skinNote.value});localStorage.setItem('skinChecks',JSON.stringify(skinChecks));renderSkin()}
 function renderSkin(){skinLog.innerHTML=skinChecks.map(x=>`<p><b>${x.date}</b><br>${x.reaction} ${x.note?'- '+x.note:''}</p>`).join('')}
-function saveProfile(){localStorage.setItem('profile',JSON.stringify({name:name.value,age:age.value,skinType:skinType.value,spf:defaultSpf.value}));profileStatus.textContent='Profil lokal gespeichert.'}
-function preview(inputId,previewId){document.getElementById(inputId).addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>document.getElementById(previewId).innerHTML=`<img src="${r.result}" style="width:100%;height:100%;object-fit:cover">`;r.readAsDataURL(f)})}
-preview('productPhoto','productPreview');preview('skinPhoto','skinPreview');renderSkin();
-if('serviceWorker' in navigator){navigator.serviceWorker.register('./service-worker.js')}
+function saveProfile(){profile={name:name.value.trim()||'Ruby',age:age.value,skinType:skinType.value,spf:defaultSpf.value,weather:weatherCondition.value};localStorage.setItem('profile',JSON.stringify(profile));updateHome();profileStatus.textContent='Profil gespeichert und Startseite aktualisiert.'}
+function preview(i,p){document.getElementById(i).addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>document.getElementById(p).innerHTML=`<img src="${r.result}" style="width:100%;height:100%;object-fit:cover">`;r.readAsDataURL(f)})}
+preview('productPhoto','productPreview');preview('skinPhoto','skinPreview');init();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('./service-worker.js');
 </script>
 </body>
 </html>

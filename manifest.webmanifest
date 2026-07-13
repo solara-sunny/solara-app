@@ -1,0 +1,20 @@
+{
+  "name": "Solara",
+  "short_name": "Solara",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fff4df",
+  "theme_color": "#fff4df",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

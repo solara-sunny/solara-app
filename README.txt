@@ -1,0 +1,1 @@
+Solara Beta 0.2: Öffnungsbildschirm, Profilname auf Startseite, wetterabhängige Score-Darstellung, großer UV-Index und deutlichere Navigation.
