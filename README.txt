@@ -1,17 +1,19 @@
-SOLARA BETA 0.6
+SOLARA BETA 0.7 – LIVE-WETTER
 
 Neu:
-- Solara Score als zentrale große Karte
-- UV-Index direkt im Score-Bereich
-- Temperatur direkt im Score-Bereich
-- Sonnenfenster direkt im Score-Bereich
-- dynamischer Hinweis passend zur Wetterlage
-- bisherige Bedienung bleibt erhalten
-- Pastell-Wetterfiguren und eigene Navigation bleiben bestehen
+- Standortfreigabe des Geräts
+- Wetterdaten für die aktuellen Koordinaten
+- aktueller UV-Index der aktuellen Stunde
+- aktuelle Temperatur und gefühlte Temperatur
+- echte Wetterlage über WMO-Wettercode
+- automatische Tageszeit anhand der lokalen API-Zeit
+- automatischer Wechsel der Pastell-Wetterfigur
+- Neuberechnung des Solara Scores
+- Aktualisierung beim Öffnen, Zurückkehren zur App und alle 10 Minuten
+- kein fester UV-Platzhalter mehr
 
-Zum Aktualisieren:
-1. ZIP entpacken.
-2. Alle Dateien im GitHub-Repository ersetzen.
-3. Commit changes.
-4. Unter Actions auf den grünen Haken warten.
-5. App vollständig schließen und neu öffnen.
+Beim ersten Öffnen:
+Bitte den Standortzugriff erlauben. GitHub Pages läuft über HTTPS und kann deshalb die Standortfreigabe anfragen.
+
+Hinweis:
+Die Wetterdaten stammen aus Wettermodellen und sind keine direkte Messung durch das iPhone.
