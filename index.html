@@ -10,17 +10,61 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Solara</title>
 <style>
-:root{--gold:#e6ad38;--ink:#2c2a27;--muted:#756c62}
+:root{--ink:#2c2a27;--muted:#756c62}
 *{box-sizing:border-box}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(#fff8e9,#f6e6c8);color:var(--ink)}
-#splash{position:fixed;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle,#fff8c9,#f5b845);transition:.6s}
-#splash.hide{opacity:0;visibility:hidden}.sun{font-size:90px}.brand{font-size:36px;margin:10px 0 2px}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);transition:background .5s ease}
+body.morning{background:linear-gradient(180deg,#fff1d6,#f8dcc0)}
+body.day{background:linear-gradient(180deg,#fff8e9,#f6e6c8)}
+body.evening{background:linear-gradient(180deg,#f6c38d,#d98a74)}
+body.night{background:linear-gradient(180deg,#17233c,#2c3956);color:#f7f2ea}
+
+#splash{position:fixed;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:.6s}
+#splash.morning{background:radial-gradient(circle,#fff8c9,#f4b85a)}
+#splash.day{background:radial-gradient(circle,#fff8c9,#f5b845)}
+#splash.evening{background:radial-gradient(circle,#ffd5a0,#d7735c)}
+#splash.night{background:radial-gradient(circle,#53658a,#17233c);color:white}
+#splash.hide{opacity:0;visibility:hidden}.splash-icon{font-size:90px}.brand{font-size:36px;margin:10px 0 2px}
+
 #app{max-width:430px;margin:auto;padding:20px 16px 105px}section{display:none}.active{display:block}
-.hero{min-height:315px;border-radius:30px;padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;box-shadow:0 18px 45px rgba(129,89,28,.16)}
-.sunny{background:radial-gradient(circle at 50% 30%,#fff9c7,#ffd76a 32%,#ef9c2c)}
-.partly{background:linear-gradient(#bfe8f2,#f4d58b)}.cloudy{background:linear-gradient(#dce8ed,#b9d0da)}.rainy{background:linear-gradient(#8099ad,#52697d);color:white}
-.weather-icon{font-size:112px}.score{position:absolute;top:88px;font-size:72px;font-weight:800}.uv{font-size:30px;font-weight:800;background:rgba(255,255,255,.45);padding:8px 16px;border-radius:18px}
-.card{background:rgba(255,255,255,.92);border-radius:22px;padding:18px;margin:14px 0;box-shadow:0 10px 28px rgba(83,61,23,.08)}
+.hero{
+  min-height:330px;border-radius:30px;padding:24px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;box-shadow:0 18px 45px rgba(30,30,30,.18);
+  overflow:hidden;transition:background .5s ease
+}
+.sky-layer{position:absolute;inset:0}
+.weather-visual{font-size:118px;z-index:2;filter:drop-shadow(0 8px 12px rgba(0,0,0,.16))}
+.score{position:absolute;top:94px;font-size:72px;font-weight:800;z-index:3}
+.uv{font-size:30px;font-weight:800;background:rgba(255,255,255,.48);padding:8px 16px;border-radius:18px;backdrop-filter:blur(8px);z-index:3}
+.weather-label{z-index:3;font-weight:700;margin-top:12px;text-align:center}
+.horizon{position:absolute;left:0;right:0;bottom:0;height:34%;background:linear-gradient(180deg,rgba(255,255,255,0),rgba(78,86,58,.28));z-index:1}
+
+/* Morgen */
+.hero.morning.sunny{background:linear-gradient(180deg,#ffd9a8 0%,#ffefc7 42%,#f7b764 100%)}
+.hero.morning.partly{background:linear-gradient(180deg,#d8e8ef 0%,#ffd8ab 62%,#efb36a 100%)}
+.hero.morning.cloudy{background:linear-gradient(180deg,#bfcdd4,#e8d4bf)}
+.hero.morning.rainy{background:linear-gradient(180deg,#8fa4b2,#c4b9b0)}
+
+/* Tag */
+.hero.day.sunny{background:radial-gradient(circle at 50% 30%,#fff9c7,#ffd76a 32%,#ef9c2c)}
+.hero.day.partly{background:linear-gradient(180deg,#bfe8f2 0%,#f4d58b 100%)}
+.hero.day.cloudy{background:linear-gradient(180deg,#dce8ed,#9db2bd)}
+.hero.day.rainy{background:linear-gradient(180deg,#8099ad,#52697d);color:white}
+
+/* Abend */
+.hero.evening.sunny{background:linear-gradient(180deg,#ffcf8b 0%,#e7795e 68%,#8c4f65 100%)}
+.hero.evening.partly{background:linear-gradient(180deg,#cb8ba5 0%,#f1b77a 68%,#7a4b68 100%)}
+.hero.evening.cloudy{background:linear-gradient(180deg,#8f8797,#c09389)}
+.hero.evening.rainy{background:linear-gradient(180deg,#58677c,#8a6674);color:white}
+
+/* Nacht */
+.hero.night.sunny{background:linear-gradient(180deg,#223050,#12192d);color:white}
+.hero.night.partly{background:linear-gradient(180deg,#3f506e,#1d2942);color:white}
+.hero.night.cloudy{background:linear-gradient(180deg,#4b5568,#222a39);color:white}
+.hero.night.rainy{background:linear-gradient(180deg,#27364a,#111722);color:white}
+.hero.night .uv,.hero.rainy .uv{background:rgba(255,255,255,.18);color:white}
+
+.card{background:rgba(255,255,255,.92);border-radius:22px;padding:18px;margin:14px 0;box-shadow:0 10px 28px rgba(83,61,23,.08);color:#2c2a27}
 button{width:100%;padding:15px;border:0;border-radius:16px;background:linear-gradient(135deg,#e4a72d,#efbd51);color:white;font-size:16px;font-weight:700;margin:7px 0}
 input,select{width:100%;padding:13px;margin:6px 0 12px;border:1px solid #ded3c3;border-radius:12px;background:white;font-size:16px}
 .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(430px,100%);display:grid;grid-template-columns:repeat(5,1fr);background:rgba(255,255,255,.97);padding:8px 6px calc(8px + env(safe-area-inset-bottom));border-top:1px solid #e5d9c9}
@@ -29,19 +73,60 @@ input,select{width:100%;padding:13px;margin:6px 0 12px;border:1px solid #ded3c3;
 </style>
 </head>
 <body>
-<div id="splash"><div class="sun">☀️</div><h1 class="brand">Solara</h1><p>Lerne deine Sonne kennen.</p></div>
+<div id="splash"><div id="splashIcon" class="splash-icon">☀️</div><h1 class="brand">Solara</h1><p id="splashText">Lerne deine Sonne kennen.</p></div>
 <div id="app">
 <section id="today" class="active">
-<h1>Solara</h1><p id="greet">Guten Morgen, Ruby ☀️</p>
-<div id="hero" class="hero sunny"><div id="wIcon" class="weather-icon">☀️</div><div id="score" class="score">86</div><div id="uv" class="uv">UV 5,8</div><p id="wLabel"><b>Sonnig · gute Bedingungen</b></p></div>
-<div class="card"><h3>Deine heutige Empfehlung</h3><p><b>Sonnenfenster:</b> 12:20–12:48</p><p><b>Dauer:</b> 28 Minuten</p><p><b>Sonnenschutz:</b> SPF 50</p><button onclick="startTimer()">Sonnenzeit starten</button></div>
-</section>
-<section id="timerScreen"><h1>Deine Sonnenzeit</h1><div class="card"><div id="timer" class="timer">28:00</div><p style="text-align:center">Verbleibende Zeit</p><button onclick="stopTimer()">Sitzung beenden</button></div></section>
-<section id="products"><h1>Produkte</h1><div class="card"><input id="productPhoto" type="file" accept="image/*" capture="environment"><div id="productPreview" class="photo">📷</div><label>Marke</label><input id="brand"><label>Produkt</label><input id="productName"><label>SPF</label><select id="spf"><option>30</option><option selected>50</option><option>50+</option></select><button onclick="saveProduct()">Speichern</button><p id="savedProduct" class="small"></p></div></section>
-<section id="skin"><h1>Haut</h1><div class="card"><input id="skinPhoto" type="file" accept="image/*" capture="user"><div id="skinPreview" class="photo">📸</div><label>Hautreaktion</label><select id="reaction"><option>Normal</option><option>Warm</option><option>Leicht gerötet</option><option>Stark gerötet</option></select><label>Notiz</label><input id="skinNote"><button onclick="saveSkin()">Hautcheck speichern</button><div id="skinLog"></div></div><p class="small">Nur Dokumentation, keine Diagnose.</p></section>
-<section id="history"><h1>Verlauf</h1><div id="historyList" class="card"><p>Noch keine Sitzung gespeichert.</p></div></section>
-<section id="profile"><h1>Profil</h1><div class="card"><label>Name</label><input id="name" value="Ruby"><label>Alter</label><input id="age" value="19"><label>Hautprofil</label><select id="skinType"><option>II–III</option><option>I</option><option>II</option><option>III</option></select><label>Standard-SPF</label><select id="defaultSpf"><option selected>50</option><option>30</option></select><label>Wetterdarstellung testen</label><select id="weatherCondition"><option value="sunny">Sonnig</option><option value="partly">Teilweise bewölkt</option><option value="cloudy">Bewölkt</option><option value="rainy">Regen</option></select><button onclick="saveProfile()">Profil speichern</button><p id="profileStatus" class="small"></p></div></section>
+<h1>Solara</h1><p id="greet">Guten Abend, Ruby 🌅</p>
+<div id="hero" class="hero evening sunny">
+  <div class="sky-layer"></div>
+  <div class="horizon"></div>
+  <div id="weatherVisual" class="weather-visual">🌇</div>
+  <div id="score" class="score">86</div>
+  <div id="uv" class="uv">UV 5,8</div>
+  <p id="weatherLabel" class="weather-label">Sonniger Abend · Sonnenuntergang</p>
 </div>
+<div class="card">
+  <h3>Deine heutige Empfehlung</h3>
+  <p><b>Sonnenfenster:</b> 12:20–12:48</p>
+  <p><b>Dauer:</b> 28 Minuten</p>
+  <p><b>Sonnenschutz:</b> SPF 50</p>
+  <button onclick="startTimer()">Sonnenzeit starten</button>
+</div>
+</section>
+
+<section id="timerScreen"><h1>Deine Sonnenzeit</h1><div class="card"><div id="timer" class="timer">28:00</div><p style="text-align:center">Verbleibende Zeit</p><button onclick="stopTimer()">Sitzung beenden</button></div></section>
+
+<section id="products"><h1>Produkte</h1><div class="card"><input id="productPhoto" type="file" accept="image/*" capture="environment"><div id="productPreview" class="photo">📷</div><label>Marke</label><input id="brand"><label>Produkt</label><input id="productName"><label>SPF</label><select id="spf"><option>30</option><option selected>50</option><option>50+</option></select><button onclick="saveProduct()">Speichern</button><p id="savedProduct" class="small"></p></div></section>
+
+<section id="skin"><h1>Haut</h1><div class="card"><input id="skinPhoto" type="file" accept="image/*" capture="user"><div id="skinPreview" class="photo">📸</div><label>Hautreaktion</label><select id="reaction"><option>Normal</option><option>Warm</option><option>Leicht gerötet</option><option>Stark gerötet</option></select><label>Notiz</label><input id="skinNote"><button onclick="saveSkin()">Hautcheck speichern</button><div id="skinLog"></div></div><p class="small">Nur Dokumentation, keine Diagnose.</p></section>
+
+<section id="history"><h1>Verlauf</h1><div id="historyList" class="card"><p>Noch keine Sitzung gespeichert.</p></div></section>
+
+<section id="profile"><h1>Profil</h1><div class="card">
+<label>Name</label><input id="name" value="Ruby">
+<label>Alter</label><input id="age" value="19">
+<label>Hautprofil</label><select id="skinType"><option>II–III</option><option>I</option><option>II</option><option>III</option></select>
+<label>Standard-SPF</label><select id="defaultSpf"><option selected>50</option><option>30</option></select>
+<label>Wetterdarstellung testen</label>
+<select id="weatherCondition">
+<option value="sunny">Sonnig</option>
+<option value="partly">Teilweise bewölkt</option>
+<option value="cloudy">Bewölkt</option>
+<option value="rainy">Regen</option>
+</select>
+<label>Tageszeit testen</label>
+<select id="timePreview">
+<option value="auto">Automatisch</option>
+<option value="morning">Morgen</option>
+<option value="day">Tag</option>
+<option value="evening">Abend</option>
+<option value="night">Nacht</option>
+</select>
+<button onclick="saveProfile()">Profil speichern</button>
+<p id="profileStatus" class="small"></p>
+</div></section>
+</div>
+
 <div class="nav">
 <button class="on" onclick="show('today',this)"><span>☀️</span>Heute</button>
 <button onclick="show('products',this)"><span>🧴</span>Produkte</button>
@@ -49,14 +134,92 @@ input,select{width:100%;padding:13px;margin:6px 0 12px;border:1px solid #ded3c3;
 <button onclick="show('history',this)"><span>📅</span>Verlauf</button>
 <button onclick="show('profile',this)"><span>👤</span>Profil</button>
 </div>
+
 <script>
 let interval=null,remaining=1680;
 let sessions=JSON.parse(localStorage.getItem('sessions')||'[]');
 let skinChecks=JSON.parse(localStorage.getItem('skinChecks')||'[]');
-let profile=JSON.parse(localStorage.getItem('profile')||'{"name":"Ruby","age":"19","skinType":"II–III","spf":"50","weather":"sunny"}');
-const wm={sunny:['☀️','Sonnig · gute Bedingungen',86,'5,8'],partly:['🌤️','Teilweise bewölkt · wechselhaft',74,'4,6'],cloudy:['☁️','Bewölkt · reduzierte Einstrahlung',58,'3,1'],rainy:['🌧️','Regen · heute kein Sonnenfenster',22,'1,4']};
-function init(){setTimeout(()=>splash.classList.add('hide'),1800);name.value=profile.name;age.value=profile.age;skinType.value=profile.skinType;defaultSpf.value=profile.spf;weatherCondition.value=profile.weather;updateHome();renderSkin()}
-function updateHome(){greet.textContent=`Guten Morgen, ${profile.name||'Ruby'} ☀️`;let w=wm[profile.weather||'sunny'];hero.className=`hero ${profile.weather||'sunny'}`;wIcon.textContent=w[0];wLabel.innerHTML=`<b>${w[1]}</b>`;score.textContent=w[2];uv.textContent=`UV ${w[3]}`}
+let profile=JSON.parse(localStorage.getItem('profile')||'{"name":"Ruby","age":"19","skinType":"II–III","spf":"50","weather":"sunny","timePreview":"auto"}');
+
+const weatherValues={
+ sunny:{score:86,uv:'5,8'},
+ partly:{score:74,uv:'4,6'},
+ cloudy:{score:58,uv:'3,1'},
+ rainy:{score:22,uv:'1,4'}
+};
+
+const visualMatrix={
+ morning:{
+  sunny:{icon:'🌅',label:'Sonniger Morgen · Sonnenaufgang'},
+  partly:{icon:'🌤️',label:'Morgen mit Sonne und Wolken'},
+  cloudy:{icon:'☁️',label:'Bewölkter Morgen'},
+  rainy:{icon:'🌧️',label:'Regnerischer Morgen'}
+ },
+ day:{
+  sunny:{icon:'☀️',label:'Sonniger Tag'},
+  partly:{icon:'🌤️',label:'Sonne und Wolken am Tag'},
+  cloudy:{icon:'☁️',label:'Bewölkter Tag'},
+  rainy:{icon:'🌧️',label:'Regnerischer Tag'}
+ },
+ evening:{
+  sunny:{icon:'🌇',label:'Sonniger Abend · Sonnenuntergang'},
+  partly:{icon:'🌥️',label:'Abendhimmel mit Wolken'},
+  cloudy:{icon:'☁️',label:'Bewölkter Abend'},
+  rainy:{icon:'🌧️',label:'Regnerischer Abend'}
+ },
+ night:{
+  sunny:{icon:'🌙',label:'Klare Nacht'},
+  partly:{icon:'☁️🌙',label:'Leicht bewölkte Nacht'},
+  cloudy:{icon:'☁️',label:'Bewölkte Nacht'},
+  rainy:{icon:'🌧️',label:'Regnerische Nacht'}
+ }
+};
+
+function getAutomaticPeriod(){
+ const h=new Date().getHours();
+ if(h>=5 && h<10)return 'morning';
+ if(h>=10 && h<18)return 'day';
+ if(h>=18 && h<22)return 'evening';
+ return 'night';
+}
+function getPeriod(){
+ return profile.timePreview && profile.timePreview!=='auto' ? profile.timePreview : getAutomaticPeriod();
+}
+function greetingData(period){
+ return {
+  morning:['Guten Morgen','🌅','Ein neuer Sonnentag beginnt.'],
+  day:['Guten Tag','☀️','Lerne deine Sonne kennen.'],
+  evening:['Guten Abend','🌇','Der Tag klingt langsam aus.'],
+  night:['Gute Nacht','🌙','Zeit für Ruhe und Regeneration.']
+ }[period];
+}
+function init(){
+ const p=getPeriod();
+ document.body.className=p;
+ splash.className=p;
+ const g=greetingData(p);
+ splashIcon.textContent=g[1];
+ splashText.textContent=g[2];
+ setTimeout(()=>splash.classList.add('hide'),1800);
+ name.value=profile.name; age.value=profile.age; skinType.value=profile.skinType;
+ defaultSpf.value=profile.spf; weatherCondition.value=profile.weather;
+ timePreview.value=profile.timePreview||'auto';
+ updateHome(); renderSkin();
+}
+function updateHome(){
+ const period=getPeriod();
+ const weather=profile.weather||'sunny';
+ const g=greetingData(period);
+ const v=visualMatrix[period][weather];
+ const w=weatherValues[weather];
+ document.body.className=period;
+ greet.textContent=`${g[0]}, ${profile.name||'Ruby'} ${g[1]}`;
+ hero.className=`hero ${period} ${weather}`;
+ weatherVisual.textContent=v.icon;
+ weatherLabel.textContent=v.label;
+ score.textContent=w.score;
+ uv.textContent=`UV ${w.uv}`;
+}
 function show(id,b){document.querySelectorAll('section').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('on'));if(b)b.classList.add('on');if(id==='history')renderHistory()}
 function startTimer(){remaining=1680;show('timerScreen');updateTimer();interval=setInterval(()=>{remaining--;updateTimer();if(remaining<=0)stopTimer()},1000)}
 function updateTimer(){timer.textContent=`${String(Math.floor(remaining/60)).padStart(2,'0')}:${String(remaining%60).padStart(2,'0')}`}
@@ -65,7 +228,12 @@ function renderHistory(){historyList.innerHTML=sessions.length?sessions.map(x=>`
 function saveProduct(){localStorage.setItem('product',JSON.stringify({brand:brand.value,name:productName.value,spf:spf.value}));savedProduct.textContent='Produkt gespeichert.'}
 function saveSkin(){skinChecks.unshift({date:new Date().toLocaleString('de-DE'),reaction:reaction.value,note:skinNote.value});localStorage.setItem('skinChecks',JSON.stringify(skinChecks));renderSkin()}
 function renderSkin(){skinLog.innerHTML=skinChecks.map(x=>`<p><b>${x.date}</b><br>${x.reaction} ${x.note?'- '+x.note:''}</p>`).join('')}
-function saveProfile(){profile={name:name.value.trim()||'Ruby',age:age.value,skinType:skinType.value,spf:defaultSpf.value,weather:weatherCondition.value};localStorage.setItem('profile',JSON.stringify(profile));updateHome();profileStatus.textContent='Profil gespeichert und Startseite aktualisiert.'}
+function saveProfile(){
+ profile={name:name.value.trim()||'Ruby',age:age.value,skinType:skinType.value,spf:defaultSpf.value,weather:weatherCondition.value,timePreview:timePreview.value};
+ localStorage.setItem('profile',JSON.stringify(profile));
+ updateHome();
+ profileStatus.textContent='Profil gespeichert und Ansicht aktualisiert.';
+}
 function preview(i,p){document.getElementById(i).addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>document.getElementById(p).innerHTML=`<img src="${r.result}" style="width:100%;height:100%;object-fit:cover">`;r.readAsDataURL(f)})}
 preview('productPhoto','productPreview');preview('skinPhoto','skinPreview');init();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('./service-worker.js');
