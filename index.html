@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6efe4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Solara">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Solara</title>
+<style>
+:root{--bg:#f6efe4;--card:#fff;--text:#202020;--accent:#d6a23a;--muted:#707070}
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;background:var(--bg);color:var(--text)}
+#app{max-width:430px;margin:auto;padding:calc(18px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom))}
+section{display:none}.active-screen{display:block}
+.card{background:var(--card);border-radius:20px;padding:18px;margin:14px 0;box-shadow:0 8px 24px rgba(0,0,0,.06)}
+button{width:100%;padding:15px;margin:7px 0;border:0;border-radius:14px;background:var(--accent);color:#fff;font-size:16px;font-weight:600}
+button.secondary{background:#e6e1d9;color:#222}
+input,select{width:100%;padding:13px;margin:6px 0 12px;border:1px solid #ddd;border-radius:12px;background:#fff;font-size:16px}
+.score{font-size:78px;text-align:center;font-weight:700}
+.timer{font-size:62px;text-align:center;font-weight:700}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(430px,100%);display:flex;background:rgba(255,255,255,.96);border-top:1px solid #ddd;padding-bottom:env(safe-area-inset-bottom);backdrop-filter:blur(14px)}
+.nav button{background:transparent;color:#333;border-radius:0;margin:0;padding:12px 2px;font-size:11px}
+.small{color:var(--muted);font-size:14px}
+.photo-box{height:150px;background:#e7e1d7;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:42px;overflow:hidden}
+h1{margin-bottom:4px}
+.center{text-align:center}
+</style>
+</head>
+<body>
+<div id="app">
+<section id="today" class="active-screen">
+<h1>Solara</h1><p>Guten Morgen, Max</p>
+<div class="card"><div class="score">86</div><p class="center">Solara Score</p><p class="center">Gute Bedingungen</p></div>
+<div class="card"><h3>Heutige Empfehlung</h3><p><b>Sonnenfenster:</b> 12:20–12:48</p><p><b>Dauer:</b> 28 Minuten</p><p><b>UV:</b> 5,8</p><p><b>Schutz:</b> SPF 50</p><button onclick="startTimer()">Sonnenmodus starten</button></div>
+</section>
+
+<section id="timerScreen">
+<h1>Sonnenmodus</h1>
+<div class="card"><div id="timer" class="timer">28:00</div><p class="center">Verbleibende Zeit</p><p class="center">SPF 50 aktiv</p><button class="secondary" onclick="stopTimer()">Sitzung beenden</button></div>
+</section>
+
+<section id="products">
+<h1>Produkte</h1>
+<div class="card"><h3>Produkt hinzufügen</h3>
+<input id="productPhoto" type="file" accept="image/*" capture="environment">
+<div id="productPreview" class="photo-box">📷</div>
+<label>Marke</label><input id="brand" placeholder="z. B. Nivea">
+<label>Produktname</label><input id="productName" placeholder="z. B. Sun Protect">
+<label>SPF</label><select id="spf"><option>15</option><option>20</option><option>30</option><option selected>50</option><option>50+</option></select>
+<label>Kategorie</label><select id="category"><option>Sonnencreme</option><option>Spray</option><option>Öl</option><option>Bräunungsbeschleuniger</option></select>
+<button onclick="saveProduct()">Produkt speichern</button><p id="savedProduct" class="small"></p></div>
+</section>
+
+<section id="skin">
+<h1>Haut-Timeline</h1>
+<div class="card">
+<input id="skinPhoto" type="file" accept="image/*" capture="user">
+<div id="skinPreview" class="photo-box">📸</div>
+<label>Hautreaktion</label><select id="reaction"><option>Normal</option><option>Warm</option><option>Leicht gerötet</option><option>Stark gerötet</option></select>
+<label>Notiz</label><input id="skinNote" placeholder="z. B. linke Wange">
+<button onclick="saveSkin()">Hautcheck speichern</button><div id="skinLog"></div></div>
+<p class="small">Nur zur Dokumentation, keine medizinische Diagnose.</p>
+</section>
+
+<section id="history"><h1>Verlauf</h1><div class="card" id="historyList"><p>Noch keine Sitzung gespeichert.</p></div></section>
+
+<section id="profile">
+<h1>Profil</h1><div class="card">
+<label>Name</label><input id="name" value="Max">
+<label>Alter</label><input id="age" value="19">
+<label>Hautprofil</label><select id="skinType"><option>II–III</option><option>I</option><option>II</option><option>III</option><option>IV</option></select>
+<label>Standard-SPF</label><select id="defaultSpf"><option selected>50</option><option>30</option><option>20</option></select>
+<button onclick="saveProfile()">Profil speichern</button><p id="profileStatus" class="small"></p></div>
+</section>
+</div>
+
+<div class="nav">
+<button onclick="showScreen('today')">Heute</button>
+<button onclick="showScreen('products')">Produkte</button>
+<button onclick="showScreen('skin')">Haut</button>
+<button onclick="showScreen('history')">Verlauf</button>
+<button onclick="showScreen('profile')">Profil</button>
+</div>
+
+<script>
+let interval=null, remaining=28*60;
+let sessions=JSON.parse(localStorage.getItem('sessions')||'[]');
+let skinChecks=JSON.parse(localStorage.getItem('skinChecks')||'[]');
+
+function showScreen(id){document.querySelectorAll('section').forEach(s=>s.classList.remove('active-screen'));document.getElementById(id).classList.add('active-screen');if(id==='history')renderHistory()}
+function startTimer(){remaining=28*60;showScreen('timerScreen');updateTimer();interval=setInterval(()=>{remaining--;updateTimer();if(remaining<=0)finishSession()},1000)}
+function updateTimer(){timer.textContent=`${String(Math.floor(remaining/60)).padStart(2,'0')}:${String(remaining%60).padStart(2,'0')}`}
+function stopTimer(){if(interval)clearInterval(interval);let used=28*60-remaining;sessions.unshift({date:new Date().toLocaleString('de-DE'),minutes:Math.max(1,Math.round(used/60)),uv:'5,8',spf:'50'});localStorage.setItem('sessions',JSON.stringify(sessions));alert('Sitzung gespeichert.');showScreen('history')}
+function finishSession(){clearInterval(interval);sessions.unshift({date:new Date().toLocaleString('de-DE'),minutes:28,uv:'5,8',spf:'50'});localStorage.setItem('sessions',JSON.stringify(sessions));alert('Deine geplante Sonnenzeit ist beendet.');showScreen('history')}
+function renderHistory(){historyList.innerHTML=sessions.length?sessions.map(x=>`<div style="padding:10px 0;border-bottom:1px solid #ddd"><b>${x.date}</b><br>${x.minutes} Minuten · UV ${x.uv} · SPF ${x.spf}</div>`).join(''):'<p>Noch keine Sitzung gespeichert.</p>'}
+function saveProduct(){let p={brand:brand.value,name:productName.value,spf:spf.value,category:category.value};localStorage.setItem('product',JSON.stringify(p));savedProduct.textContent=`Gespeichert: ${p.brand} ${p.name}, SPF ${p.spf}, ${p.category}`}
+function saveSkin(){let item={date:new Date().toLocaleString('de-DE'),reaction:reaction.value,note:skinNote.value};skinChecks.unshift(item);localStorage.setItem('skinChecks',JSON.stringify(skinChecks));renderSkin()}
+function renderSkin(){skinLog.innerHTML=skinChecks.map(x=>`<p><b>${x.date}</b><br>${x.reaction} ${x.note?'- '+x.note:''}</p>`).join('')}
+function saveProfile(){localStorage.setItem('profile',JSON.stringify({name:name.value,age:age.value,skinType:skinType.value,spf:defaultSpf.value}));profileStatus.textContent='Profil lokal gespeichert.'}
+function preview(inputId,previewId){document.getElementById(inputId).addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>document.getElementById(previewId).innerHTML=`<img src="${r.result}" style="width:100%;height:100%;object-fit:cover">`;r.readAsDataURL(f)})}
+preview('productPhoto','productPreview');preview('skinPhoto','skinPreview');renderSkin();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./service-worker.js')}
+</script>
+</body>
+</html>
