@@ -1,18 +1,17 @@
-SOLARA BETA 0.5
+SOLARA BETA 0.6
 
 Neu:
-- keine Apple-Emojis mehr
-- eigene Pastell-Kawaii-Wetterfiguren als SVG
-- Sonne, teilweise bewölkt, Wolken, Regen, Gewitter, Schnee, Wind, Regenbogen, Nebel und Mond
-- rosa Wangen und dezentes Lächeln
-- eigene Navigationssymbole für Heute, Produkte, Haut, Verlauf und Profil
-- ruhige Animationen
-- automatische Kombination aus Tageszeit und Wetter
-- Temperatur, gefühlte Temperatur, Ort, Wetterbeschreibung, UV und Solara Score direkt auf der Startseite
+- Solara Score als zentrale große Karte
+- UV-Index direkt im Score-Bereich
+- Temperatur direkt im Score-Bereich
+- Sonnenfenster direkt im Score-Bereich
+- dynamischer Hinweis passend zur Wetterlage
+- bisherige Bedienung bleibt erhalten
+- Pastell-Wetterfiguren und eigene Navigation bleiben bestehen
 
 Zum Aktualisieren:
 1. ZIP entpacken.
 2. Alle Dateien im GitHub-Repository ersetzen.
 3. Commit changes.
-4. Unter Actions auf grünen Haken warten.
-5. App auf dem iPhone vollständig schließen und neu öffnen.
+4. Unter Actions auf den grünen Haken warten.
+5. App vollständig schließen und neu öffnen.
