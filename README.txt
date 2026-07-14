@@ -1,19 +1,29 @@
-SOLARA BETA 0.7 – LIVE-WETTER
+SOLARA BETA 0.9A – LIEFERUNG 3
 
-Neu:
-- Standortfreigabe des Geräts
-- Wetterdaten für die aktuellen Koordinaten
-- aktueller UV-Index der aktuellen Stunde
-- aktuelle Temperatur und gefühlte Temperatur
-- echte Wetterlage über WMO-Wettercode
-- automatische Tageszeit anhand der lokalen API-Zeit
-- automatischer Wechsel der Pastell-Wetterfigur
-- Neuberechnung des Solara Scores
-- Aktualisierung beim Öffnen, Zurückkehren zur App und alle 10 Minuten
-- kein fester UV-Platzhalter mehr
+Diese Version enthält Lieferung 1 und 2 vollständig und ergänzt:
 
-Beim ersten Öffnen:
-Bitte den Standortzugriff erlauben. GitHub Pages läuft über HTTPS und kann deshalb die Standortfreigabe anfragen.
+- Hauttyp: sehr trocken, trocken, normal, Mischhaut, ölig
+- empfindliche oder schnell gereizte Haut
+- Pickel- und Akne-Neigung
+- bekannte Hauterkrankungen als optionale Mehrfachauswahl
+- Allergien und Unverträglichkeiten als optionale Mehrfachauswahl
+- Pigmentflecken und Sommersprossen
+- Muttermale und regelmäßig beobachtete Hautstellen
+- mögliche lichtempfindliche Medikamente
+- optionale Schwangerschaftsangabe
+- Erklärungen „Warum fragen wir das?“
+- klare Hinweise: keine Diagnosen
+- Speicherung aller Angaben
+- Profilübersicht mit Hauttyp und besonderen Hinweisen
+- alle Angaben später bearbeitbar
+
+GITHUB:
+1. ZIP entpacken.
+2. Alle enthaltenen Dateien hochladen.
+3. Vorhandene Dateien mit gleichem Namen ersetzen.
+4. Commit changes.
+5. Unter Actions auf den grünen Haken warten.
+6. Solara vollständig schließen und neu öffnen.
 
 Hinweis:
-Die Wetterdaten stammen aus Wettermodellen und sind keine direkte Messung durch das iPhone.
+Diese Lieferung ist kumulativ. Du brauchst Lieferung 1 und 2 nicht zusätzlich hochzuladen.
