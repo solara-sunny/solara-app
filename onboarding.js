@@ -198,7 +198,7 @@
 
   document.querySelector("[data-complete]").addEventListener("click",()=>{
     localStorage.setItem(COMPLETE_KEY,"true");
-    showHome();
+    showWelcomeComplete();
   });
 
   function populate(){
@@ -225,26 +225,29 @@
     });
   }
 
-  function showHome(){
+  function skinTypeLabel(value){
+    return {
+      veryDry:"Sehr trocken", dry:"Trocken", normal:"Normal",
+      combination:"Mischhaut", oily:"Ölig", unknown:"Nicht sicher"
+    }[value] || "Nicht angegeben";
+  }
+
+  function simpleLabel(value){
+    return {yes:"Ja",sometimes:"Gelegentlich",no:"Nein",unknown:"Nicht sicher"}[value] || "Nicht angegeben";
+  }
+
+  function fillProfileSummary(){
     const p=readProfile();
-    onboarding.classList.add("hidden");
-    home.classList.remove("hidden");
-    document.getElementById("homeGreeting").textContent=`Hallo, ${p.firstName||"Ruby"}!`;
+    const a=p.answers||{};
+
     document.getElementById("summaryName").textContent=p.firstName||"Nicht angegeben";
     document.getElementById("summaryAge").textContent=p.age?`${p.age} Jahre`:"Nicht angegeben";
     document.getElementById("summaryLocation").textContent=p.homeLocation||"Automatischer Standort";
     document.getElementById("summaryType").textContent=p.fitzpatrickRoman?`Typ ${p.fitzpatrickRoman}`:"Nicht berechnet";
     document.getElementById("summarySpf").textContent=p.spfRecommendation||"Nicht berechnet";
-
-    const a=p.answers||{};
-    const skinTypeLabels={
-      veryDry:"Sehr trocken",dry:"Trocken",normal:"Normal",
-      combination:"Mischhaut",oily:"Ölig",unknown:"Nicht sicher"
-    };
-    const generalLabels={yes:"Ja",sometimes:"Gelegentlich",no:"Nein",unknown:"Nicht sicher"};
-    document.getElementById("summarySkinType").textContent=skinTypeLabels[a.skinType]||"Nicht angegeben";
-    document.getElementById("summarySensitive").textContent=generalLabels[a.sensitive]||"Nicht angegeben";
-    document.getElementById("summaryAcne").textContent=generalLabels[a.acne]||"Nicht angegeben";
+    document.getElementById("summarySkinType").textContent=skinTypeLabel(a.skinType);
+    document.getElementById("summarySensitive").textContent=simpleLabel(a.sensitive);
+    document.getElementById("summaryAcne").textContent=simpleLabel(a.acne);
 
     const flags=[];
     if(Array.isArray(a.conditions) && !a.conditions.some(v=>["none","skip"].includes(v))) flags.push("bekannte Hautangaben");
@@ -255,6 +258,176 @@
     document.getElementById("summaryFlags").textContent=flags.length?flags.join(", "):"Keine besonderen Angaben";
   }
 
+  function showWelcomeComplete(){
+    const p=readProfile();
+    const a=p.answers||{};
+    onboarding.classList.add("hidden");
+    home.classList.add("hidden");
+    document.getElementById("welcomeComplete").classList.remove("hidden");
+
+    document.getElementById("welcomeTitle").textContent=`Willkommen bei Solara, ${p.firstName||"Ruby"}!`;
+    document.getElementById("welcomeType").textContent=p.fitzpatrickRoman?`Typ ${p.fitzpatrickRoman}`:"Nicht berechnet";
+    document.getElementById("welcomeSkinType").textContent=skinTypeLabel(a.skinType);
+    document.getElementById("welcomeSpf").textContent=p.spfRecommendation||"Nicht berechnet";
+    document.getElementById("welcomeLocation").textContent=p.homeLocation||"Automatischer Standort";
+  }
+
+  function timeGreeting(){
+    const hour=new Date().getHours();
+    if(hour<10)return ["Guten Morgen","Ein ruhiger Start in deinen Sonnentag."];
+    if(hour<18)return ["Guten Tag","Das sind deine aktuellen Sonnenbedingungen."];
+    if(hour<22)return ["Guten Abend","Die UV-Belastung nimmt jetzt meist deutlich ab."];
+    return ["Gute Nacht","Zeit für Ruhe und Regeneration."];
+  }
+
+  function showHome(){
+    const p=readProfile();
+    document.getElementById("welcomeComplete").classList.add("hidden");
+    onboarding.classList.add("hidden");
+    home.classList.remove("hidden");
+
+    const [greeting,subtitle]=timeGreeting();
+    document.getElementById("homeGreeting").textContent=`${greeting}, ${p.firstName||"Ruby"}!`;
+    document.getElementById("personalGreeting").textContent=subtitle;
+    document.getElementById("scoreSpf").textContent=p.spfRecommendation||"–";
+    fillProfileSummary();
+    openTab("tabToday");
+    loadLiveWeather();
+  }
+
+  function openTab(tabId){
+    document.querySelectorAll(".app-tab").forEach(tab=>tab.classList.toggle("active",tab.id===tabId));
+    document.querySelectorAll(".nav-button").forEach(button=>button.classList.toggle("active",button.dataset.tab===tabId));
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+
+  function getPosition(){
+    return new Promise((resolve,reject)=>{
+      if(!navigator.geolocation)return reject(new Error("Standort wird nicht unterstützt."));
+      navigator.geolocation.getCurrentPosition(resolve,reject,{
+        enableHighAccuracy:true,timeout:15000,maximumAge:300000
+      });
+    });
+  }
+
+  async function fetchWeather(lat,lon){
+    const params=new URLSearchParams({
+      latitude:String(lat),longitude:String(lon),timezone:"auto",
+      current:"temperature_2m,apparent_temperature,is_day,weather_code,cloud_cover,wind_speed_10m,uv_index"
+    });
+    const response=await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+    if(!response.ok)throw new Error("Wetterdienst nicht erreichbar.");
+    return response.json();
+  }
+
+  async function fetchPlace(lat,lon){
+    const params=new URLSearchParams({
+      latitude:String(lat),longitude:String(lon),localityLanguage:"de"
+    });
+    const response=await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?${params}`);
+    if(!response.ok)return null;
+    return response.json();
+  }
+
+  function weatherLabel(code){
+    if(code===0)return "Klar";
+    if([1,2].includes(code))return "Teilweise bewölkt";
+    if(code===3)return "Bewölkt";
+    if([45,48].includes(code))return "Nebel";
+    if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code))return "Regen";
+    if([71,73,75,77,85,86].includes(code))return "Schnee";
+    if([95,96,99].includes(code))return "Gewitter";
+    return "Wechselhaft";
+  }
+
+  function calculateHomeScore(uv,temp,code,isDay){
+    const p=readProfile();
+    if(!isDay||uv<0.1)return 5;
+    let score=74;
+    score-=Math.max(0,uv-5)*10;
+    score-=Math.max(0,2-uv)*12;
+    if(temp>30)score-=(temp-30)*3;
+    if(temp<14)score-=(14-temp)*2;
+    if([61,63,65,80,81,82].includes(code))score-=35;
+    if([95,96,99].includes(code))score-=60;
+    if(p.fitzpatrick<=2)score-=8;
+    return Math.max(0,Math.min(100,Math.round(score)));
+  }
+
+  function renderRecommendations(uv,score,isDay){
+    const p=readProfile();
+    const a=p.answers||{};
+    const items=[];
+
+    if(!isDay||uv<0.1){
+      items.push("Aktuell besteht praktisch keine wirksame UV-Strahlung.");
+      items.push("Heute Abend ist kein Sonnenfenster aktiv.");
+    }else if(uv>=8){
+      items.push("Die UV-Belastung ist sehr hoch. Geplantes Sonnenbaden wird nicht empfohlen.");
+    }else{
+      items.push(`Der aktuelle UV-Index liegt bei ${uv.toLocaleString("de-DE",{maximumFractionDigits:1})}.`);
+      items.push(`Für dein Profil ist ${p.spfRecommendation||"ein hoher Sonnenschutz"} die orientierende Empfehlung.`);
+    }
+
+    if(a.sensitive==="yes"||a.sensitive==="sometimes"){
+      items.push("Bei empfindlicher Haut solltest du auf Reizungen achten und möglichst milde Produkte verwenden.");
+    }
+    if(a.medication==="yes"||a.medication==="unknown"){
+      items.push("Prüfe bei Medikamenten mögliche Lichtempfindlichkeit ärztlich oder in der Apotheke.");
+    }
+    if(score<40 && isDay)items.push("Die Bedingungen sind aktuell eher ungeeignet für eine geplante Sonnensitzung.");
+
+    document.getElementById("todayRecommendations").innerHTML=items.map(item=>`<li>${item}</li>`).join("");
+  }
+
+  async function loadLiveWeather(){
+    const status=document.getElementById("weatherStatus");
+    status.textContent="Standort und Wetter werden geladen …";
+    try{
+      const position=await getPosition();
+      const lat=position.coords.latitude;
+      const lon=position.coords.longitude;
+      const [weatherResult,placeResult]=await Promise.allSettled([
+        fetchWeather(lat,lon),fetchPlace(lat,lon)
+      ]);
+      if(weatherResult.status!=="fulfilled")throw weatherResult.reason;
+
+      const current=weatherResult.value.current;
+      const place=placeResult.status==="fulfilled"?placeResult.value:null;
+      const name=place?.locality||place?.city||place?.principalSubdivision||"Aktueller Standort";
+      const temp=Number(current.temperature_2m||0);
+      const uv=Number(current.uv_index||0);
+      const isDay=current.is_day===1;
+      const score=calculateHomeScore(uv,temp,current.weather_code,isDay);
+
+      status.textContent=`Live · aktualisiert ${current.time?.slice(11,16)||""} Uhr`;
+      document.getElementById("currentTemperature").textContent=`${Math.round(temp)} °C`;
+      document.getElementById("weatherDescription").textContent=weatherLabel(current.weather_code);
+      document.getElementById("currentLocation").textContent=`${name} · Standort automatisch erkannt`;
+      document.getElementById("currentUv").textContent=uv.toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1});
+      document.getElementById("feelsLike").textContent=`${Math.round(Number(current.apparent_temperature||temp))} °C`;
+      document.getElementById("homeScore").textContent=score;
+      document.getElementById("scoreUv").textContent=uv.toLocaleString("de-DE",{maximumFractionDigits:1});
+      document.getElementById("scoreTemp").textContent=`${Math.round(temp)} °C`;
+      document.getElementById("scoreExplanation").textContent=
+        !isDay||uv<0.1
+          ?"Aktuell ist keine relevante UV-Strahlung vorhanden."
+          :score>=65
+            ?"Die Bedingungen sind grundsätzlich passend. Sonnenschutz und Hautbeobachtung bleiben wichtig."
+            :score>=40
+              ?"Die Bedingungen sind nur eingeschränkt geeignet."
+              :"Solara empfiehlt aktuell keine geplante Sonnensitzung.";
+
+      renderRecommendations(uv,score,isDay);
+    }catch(error){
+      status.textContent="Live-Daten konnten nicht geladen werden.";
+      document.getElementById("currentLocation").textContent=
+        "Bitte Standortzugriff in Safari erlauben und erneut versuchen.";
+      document.getElementById("todayRecommendations").innerHTML=
+        "<li>Ohne Standort kann Solara den aktuellen UV-Index nicht zuverlässig bestimmen.</li>";
+    }
+  }
+
   function showOnboarding(start=0){
     home.classList.add("hidden");
     onboarding.classList.remove("hidden");
@@ -262,12 +435,23 @@
     showStep(start);
   }
 
+  document.getElementById("startSolara").addEventListener("click",showHome);
+  document.getElementById("refreshWeather").addEventListener("click",loadLiveWeather);
+
+  document.querySelectorAll(".nav-button").forEach(button=>{
+    button.addEventListener("click",()=>openTab(button.dataset.tab));
+  });
+
   document.getElementById("editProfile").addEventListener("click",()=>showOnboarding(1));
   document.getElementById("resetOnboarding").addEventListener("click",()=>{
     if(!confirm("Möchtest du dein Testprofil wirklich zurücksetzen?")) return;
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(COMPLETE_KEY);
     location.reload();
+  });
+
+  document.addEventListener("visibilitychange",()=>{
+    if(!document.hidden && !home.classList.contains("hidden")) loadLiveWeather();
   });
 
   if(localStorage.getItem(COMPLETE_KEY)==="true") showHome();

@@ -320,33 +320,141 @@
           <div class="notice">
             Diese Einstufung ist eine Orientierung auf Basis deiner Antworten und keine medizinische Diagnose.
           </div>
-          <button class="primary-button" data-complete>Profil abschließen</button>
+          <button class="primary-button" data-complete>Weiter zur Begrüßung</button>
         </div>
       </div>
     </section>
 
-    <section id="home" class="screen hidden">
-      <div class="shell home-shell">
-        <p class="eyebrow">Solara Beta 0.9A</p>
-        <h1 id="homeGreeting">Hallo!</h1>
-        <p>Dein Fitzpatrick-Profil wurde gespeichert.</p>
+    
+    <section id="welcomeComplete" class="screen hidden">
+      <div class="shell welcome-complete-shell">
+        <div class="completion-sun">
+          <div class="sun-face">
+            <span class="eye left"></span><span class="eye right"></span>
+            <span class="mouth"></span>
+            <span class="cheek left"></span><span class="cheek right"></span>
+          </div>
+        </div>
+        <p class="eyebrow">Profil erfolgreich erstellt</p>
+        <h1 id="welcomeTitle">Willkommen bei Solara!</h1>
+        <p>Dein persönliches Sonnen- und Hautprofil ist jetzt bereit.</p>
 
-        <div class="profile-summary">
-          <h2>Dein Sonnenprofil</h2>
-          <div class="summary-row"><span>Name</span><strong id="summaryName">–</strong></div>
-          <div class="summary-row"><span>Alter</span><strong id="summaryAge">–</strong></div>
-          <div class="summary-row"><span>Wohnort</span><strong id="summaryLocation">–</strong></div>
-          <div class="summary-row"><span>Fitzpatrick</span><strong id="summaryType">–</strong></div>
-          <div class="summary-row"><span>SPF-Empfehlung</span><strong id="summarySpf">–</strong></div>
-          <div class="summary-row"><span>Hauttyp</span><strong id="summarySkinType">–</strong></div>
-          <div class="summary-row"><span>Empfindlichkeit</span><strong id="summarySensitive">–</strong></div>
-          <div class="summary-row"><span>Unreinheiten</span><strong id="summaryAcne">–</strong></div>
-          <div class="summary-row"><span>Besondere Hinweise</span><strong id="summaryFlags">–</strong></div>
+        <div class="profile-summary completion-summary">
+          <h2>Dein persönliches Sonnenprofil</h2>
+          <div class="summary-row"><span>Fitzpatrick</span><strong id="welcomeType">–</strong></div>
+          <div class="summary-row"><span>Hauttyp</span><strong id="welcomeSkinType">–</strong></div>
+          <div class="summary-row"><span>SPF-Empfehlung</span><strong id="welcomeSpf">–</strong></div>
+          <div class="summary-row"><span>Wohnort</span><strong id="welcomeLocation">–</strong></div>
         </div>
 
-        <button id="editProfile" class="primary-button">Profil und Test bearbeiten</button>
-        <button id="resetOnboarding" class="text-button">Testprofil zurücksetzen</button>
+        <div class="notice">
+          Solara nutzt deine Angaben für persönliche Empfehlungen. Die App stellt keine medizinischen Diagnosen.
+        </div>
+        <button id="startSolara" class="primary-button">Solara starten</button>
       </div>
+    </section>
+
+    <section id="home" class="screen hidden">
+      <div class="app-shell">
+        <section id="tabToday" class="app-tab active">
+          <header class="app-header">
+            <div>
+              <p class="eyebrow">Heute</p>
+              <h1 id="homeGreeting">Hallo!</h1>
+              <p id="personalGreeting" class="app-subtitle">Schön, dass du da bist.</p>
+            </div>
+            <button id="refreshWeather" class="round-button" aria-label="Wetter aktualisieren">↻</button>
+          </header>
+
+          <div id="weatherCard" class="weather-card">
+            <div>
+              <p id="weatherStatus" class="weather-status">Standort und Wetter werden geladen …</p>
+              <div class="weather-main">
+                <strong id="currentTemperature">–</strong>
+                <span id="weatherDescription">Live-Wetter</span>
+              </div>
+              <p id="currentLocation" class="weather-location">Aktueller Standort</p>
+            </div>
+            <div class="weather-values">
+              <div><span>UV-Index</span><strong id="currentUv">–</strong></div>
+              <div><span>Gefühlt</span><strong id="feelsLike">–</strong></div>
+            </div>
+          </div>
+
+          <div class="score-card">
+            <p class="eyebrow">Solara Score</p>
+            <div id="homeScore" class="home-score">–</div>
+            <div class="score-details">
+              <div><span>UV</span><strong id="scoreUv">–</strong></div>
+              <div><span>Temperatur</span><strong id="scoreTemp">–</strong></div>
+              <div><span>Empfohlener SPF</span><strong id="scoreSpf">–</strong></div>
+            </div>
+            <p id="scoreExplanation" class="score-explanation">
+              Solara berechnet deine Empfehlung aus Live-Wetter und deinem Hautprofil.
+            </p>
+          </div>
+
+          <div class="today-card">
+            <h2>Heute für dich</h2>
+            <ul id="todayRecommendations" class="recommendation-list">
+              <li>Live-Daten werden geladen.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="tabProducts" class="app-tab">
+          <p class="eyebrow">Produkte</p>
+          <h1>Deine Sonnenprodukte</h1>
+          <div class="empty-state">
+            <h2>Produktscanner folgt</h2>
+            <p>In Beta 0.9B kannst du Vorder- und Rückseite deiner Sonnencreme fotografieren.</p>
+          </div>
+        </section>
+
+        <section id="tabSkin" class="app-tab">
+          <p class="eyebrow">Haut</p>
+          <h1>Dein Hautbereich</h1>
+          <div class="empty-state">
+            <h2>Hautverlauf folgt</h2>
+            <p>Solara wird Veränderungen dokumentieren und nur auf mögliche Auffälligkeiten hinweisen – ohne Diagnosen.</p>
+          </div>
+        </section>
+
+        <section id="tabHistory" class="app-tab">
+          <p class="eyebrow">Verlauf</p>
+          <h1>Dein Sonnenverlauf</h1>
+          <div class="empty-state">
+            <h2>Noch keine Einträge</h2>
+            <p>Spätere Sonnensitzungen und Hautreaktionen erscheinen hier.</p>
+          </div>
+        </section>
+
+        <section id="tabProfile" class="app-tab">
+          <p class="eyebrow">Profil</p>
+          <h1>Dein Sonnenprofil</h1>
+          <div class="profile-summary">
+            <div class="summary-row"><span>Name</span><strong id="summaryName">–</strong></div>
+            <div class="summary-row"><span>Alter</span><strong id="summaryAge">–</strong></div>
+            <div class="summary-row"><span>Wohnort</span><strong id="summaryLocation">–</strong></div>
+            <div class="summary-row"><span>Fitzpatrick</span><strong id="summaryType">–</strong></div>
+            <div class="summary-row"><span>SPF-Empfehlung</span><strong id="summarySpf">–</strong></div>
+            <div class="summary-row"><span>Hauttyp</span><strong id="summarySkinType">–</strong></div>
+            <div class="summary-row"><span>Empfindlichkeit</span><strong id="summarySensitive">–</strong></div>
+            <div class="summary-row"><span>Unreinheiten</span><strong id="summaryAcne">–</strong></div>
+            <div class="summary-row"><span>Besondere Hinweise</span><strong id="summaryFlags">–</strong></div>
+          </div>
+          <button id="editProfile" class="primary-button">Profil und Test bearbeiten</button>
+          <button id="resetOnboarding" class="text-button">Testprofil zurücksetzen</button>
+        </section>
+      </div>
+
+      <nav class="bottom-nav" aria-label="Hauptnavigation">
+        <button class="nav-button active" data-tab="tabToday"><span class="nav-icon">◉</span>Heute</button>
+        <button class="nav-button" data-tab="tabProducts"><span class="nav-icon">▣</span>Produkte</button>
+        <button class="nav-button" data-tab="tabSkin"><span class="nav-icon">○</span>Haut</button>
+        <button class="nav-button" data-tab="tabHistory"><span class="nav-icon">□</span>Verlauf</button>
+        <button class="nav-button" data-tab="tabProfile"><span class="nav-icon">◇</span>Profil</button>
+      </nav>
     </section>
   </main>
 
