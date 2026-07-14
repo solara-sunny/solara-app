@@ -1,44 +1,47 @@
-SOLARA BETA 0.9B – LIEFERUNG 3.2
+SOLARA BETA 0.9B – LIEFERUNG 3.3 (VOLLSTÄNDIG)
 
-Diese Version enthält alle bisherigen Lieferungen und ergänzt:
+Diese Version enthält alle bisherigen Lieferungen und echte neue Funktionen:
 
-INTELLIGENTE INHALTSSTOFFANALYSE:
-- INCI-Liste wird in verständliche Gruppen eingeordnet:
-  • Feuchtigkeit
-  • Beruhigend / Hautbarriere
-  • UV-Filter
-  • Duftstoffe
-  • mögliche Reizstoffe
-  • Konservierungsstoffe
-  • weitere Inhaltsstoffe
-- Erkennung zusätzlicher moderner UVA- und UVB-Filter
-- automatische Produkt-Tags aus Produktangaben und Inhaltsstoffen
-- Score berücksichtigt moderne Filter sowie beruhigende und feuchtigkeitsspendende Stoffe
+PRODUKTSCANNER 2.0
+- größere Bildvorschau
+- Vorder- und Rückseitenfoto drehen
+- mittigen Zuschnitt mit Zoom
+- Foto neu aufnehmen
+- Foto entfernen
+- bearbeitetes Foto wird im Produkt gespeichert
 
-PERSÖNLICHE HINWEISE:
-- empfindliche Haut
-- trockene Haut
-- ölige oder zu Unreinheiten neigende Haut
-- angegebene Duftstoffallergie
-- verständliche, vorsichtige Formulierungen
-- keine Diagnosen und keine Verträglichkeitsgarantie
+PRODUKTVERGLEICH 2.0
+- detaillierter Vergleich der Teilbewertungen
+- Gesamt-Score-Balken
+- persönlicher Sieger
+- verständliche Begründungen
+- eigene Sternebewertung und Favorit werden berücksichtigt
 
-SOLARA-WISSENSKARTEN:
-- antippbare Inhaltsstoffe
-- Erklärung der Funktion
-- Einordnung für das persönliche Hautprofil
-- eigene Karten statt einfacher Hinweisfenster
+MEIN SONNENSCHRANK 2.0
+- Suche berücksichtigt auch Tags
+- Filter nach Produkt-Tags
+- Favoriten und beste Übereinstimmung bleiben sichtbar
+- verbesserte Produktkarten und Detailansicht
 
-OCR STUFE 2:
-- Rückseitenfoto und eingegebener Text werden gemeinsam vorbereitet
-- sofortige Gruppierung des eingefügten Textes
-- klare Kennzeichnung, dass eine zuverlässige automatische Bilderkennung in dieser Browser-Testversion noch nicht aktiv ist
+DASHBOARD
+- Anzahl gespeicherter Produkte
+- durchschnittlicher Solara Produkt Score
+- bestes Produkt
+- letzter Scan
 
-WICHTIG:
-Der SPF und die Schutzleistung können nicht aus einzelnen Inhaltsstoffen berechnet werden.
-Die Bewertung bezieht sich auf die bestätigten Produktangaben und dient nur der Orientierung.
+EINSTELLUNGEN
+- Hautprofil weiterhin bearbeitbar
+- Fragebogen erneut starten
+- komplette Solara-Daten als JSON exportieren
+- Datenschutz- und Sicherheitshinweise
+- Versionsanzeige
 
-GITHUB:
+WICHTIG
+- Daten bleiben lokal auf dem Gerät gespeichert.
+- Solara stellt keine Diagnosen.
+- Produktbewertungen sind Orientierungen und keine Verträglichkeitsgarantie.
+
+GITHUB
 1. ZIP entpacken.
 2. Alle Dateien in dein Repository hochladen.
 3. Vorhandene Dateien mit gleichem Namen ersetzen.

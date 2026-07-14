@@ -3,11 +3,12 @@
   "use strict";
   const STORAGE_KEY = "solara_profile_v09a";
   const COMPLETE_KEY = "solara_onboarding_complete_v09a";
-  const PRODUCTS_KEY = "solara_products_v09b32";
+  const PRODUCTS_KEY = "solara_products_v09b33";
 
   function migrateProductDataV32(){
     if(localStorage.getItem(PRODUCTS_KEY))return;
     const previous=
+      localStorage.getItem("solara_products_v09b32") ||
       localStorage.getItem("solara_products_v09b3") ||
       localStorage.getItem("solara_products_v09b2") ||
       localStorage.getItem("solara_products_v09b");
@@ -473,6 +474,7 @@
     document.getElementById("scoreSpf").textContent=p.spfRecommendation||"–";
     fillProfileSummary();
     renderProfileStatus();
+    renderProductDashboard();
     openTab("tabToday");
     loadLiveWeather();
   }
@@ -722,6 +724,106 @@
 
   function writeProducts(products){
     localStorage.setItem(PRODUCTS_KEY,JSON.stringify(products));
+  }
+
+
+  const photoEditorState={
+    side:null,
+    image:null,
+    rotation:0,
+    zoom:1
+  };
+
+  function photoInputForSide(side){
+    return document.getElementById(side==="front"?"frontPhoto":"backPhoto");
+  }
+
+  function photoPreviewForSide(side){
+    return document.getElementById(side==="front"?"frontPreview":"backPreview");
+  }
+
+  function loadEditorImage(dataUrl){
+    return new Promise((resolve,reject)=>{
+      const image=new Image();
+      image.onload=()=>resolve(image);
+      image.onerror=reject;
+      image.src=dataUrl;
+    });
+  }
+
+  async function openPhotoEditor(side){
+    const preview=photoPreviewForSide(side);
+    const dataUrl=preview?.dataset.image;
+    if(!dataUrl){
+      alert("Bitte fotografiere zuerst das Produkt.");
+      return;
+    }
+    photoEditorState.side=side;
+    photoEditorState.image=await loadEditorImage(dataUrl);
+    photoEditorState.rotation=0;
+    photoEditorState.zoom=1;
+    document.getElementById("photoZoom").value="1";
+    document.getElementById("photoEditorTitle").textContent=
+      side==="front"?"Vorderseite bearbeiten":"Rückseite bearbeiten";
+    drawPhotoEditor();
+    document.getElementById("photoEditorModal").classList.remove("hidden");
+  }
+
+  function drawPhotoEditor(){
+    const canvas=document.getElementById("photoEditorCanvas");
+    const ctx=canvas.getContext("2d");
+    const image=photoEditorState.image;
+    if(!image)return;
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.save();
+    ctx.translate(canvas.width/2,canvas.height/2);
+    ctx.rotate(photoEditorState.rotation*Math.PI/180);
+
+    const rotatedQuarter=Math.abs(photoEditorState.rotation/90)%2===1;
+    const iw=rotatedQuarter?image.height:image.width;
+    const ih=rotatedQuarter?image.width:image.height;
+    const baseScale=Math.max(canvas.width/iw,canvas.height/ih);
+    const scale=baseScale*photoEditorState.zoom;
+
+    ctx.drawImage(
+      image,
+      -image.width*scale/2,
+      -image.height*scale/2,
+      image.width*scale,
+      image.height*scale
+    );
+    ctx.restore();
+  }
+
+  function closePhotoEditor(){
+    document.getElementById("photoEditorModal").classList.add("hidden");
+  }
+
+  function saveEditedPhoto(){
+    const source=document.getElementById("photoEditorCanvas");
+    const cropX=Math.round(source.width*.10);
+    const cropY=Math.round(source.height*.10);
+    const cropW=Math.round(source.width*.80);
+    const cropH=Math.round(source.height*.80);
+    const output=document.createElement("canvas");
+    output.width=900;
+    output.height=650;
+    const ctx=output.getContext("2d");
+    ctx.drawImage(source,cropX,cropY,cropW,cropH,0,0,output.width,output.height);
+    const dataUrl=output.toDataURL("image/jpeg",.86);
+    const preview=photoPreviewForSide(photoEditorState.side);
+    preview.dataset.image=dataUrl;
+    preview.innerHTML=`<img src="${dataUrl}" alt="Bearbeitetes Produktfoto">`;
+    closePhotoEditor();
+  }
+
+  function removePhoto(side){
+    const preview=photoPreviewForSide(side);
+    preview.dataset.image="";
+    preview.innerHTML="Noch kein Foto";
+    const input=photoInputForSide(side);
+    input.value="";
   }
 
   function previewImage(inputId,previewId){
@@ -1475,11 +1577,15 @@
     let products=readProducts().map(normalizeProduct);
     const search=(document.getElementById("productSearch")?.value||"").trim().toLowerCase();
     const sort=document.getElementById("productSort")?.value||"newest";
+    const tagFilter=document.getElementById("productTagFilter")?.value||"";
 
     if(search){
       products=products.filter(product=>
-        `${product.brand} ${product.name} ${product.spf}`.toLowerCase().includes(search)
+        `${product.brand} ${product.name} ${product.spf} ${(product.tags||[]).join(" ")}`.toLowerCase().includes(search)
       );
+    }
+    if(tagFilter){
+      products=products.filter(product=>(product.tags||[]).includes(tagFilter));
     }
 
     if(sort==="score")products.sort((a,b)=>b.score-a.score);
@@ -1490,8 +1596,43 @@
     return products;
   }
 
+
+  function populateProductTagFilter(products){
+    const select=document.getElementById("productTagFilter");
+    if(!select)return;
+    const current=select.value;
+    const tags=[...new Set(products.flatMap(product=>product.tags||[]))].sort((a,b)=>a.localeCompare(b,"de"));
+    select.innerHTML=`<option value="">Alle Tags</option>`+
+      tags.map(tag=>`<option value="${escapeHtml(tag)}">${escapeHtml(tag)}</option>`).join("");
+    if(tags.includes(current))select.value=current;
+  }
+
+  function renderProductDashboard(){
+    const products=readProducts().map(normalizeProduct);
+    const countNode=document.getElementById("dashboardProductCount");
+    if(!countNode)return;
+
+    countNode.textContent=String(products.length);
+    if(!products.length){
+      document.getElementById("dashboardAverageScore").textContent="–";
+      document.getElementById("dashboardBestProduct").textContent="–";
+      document.getElementById("dashboardLastScan").textContent="–";
+      return;
+    }
+
+    const average=Math.round(products.reduce((sum,p)=>sum+Number(p.score||0),0)/products.length);
+    const best=[...products].sort((a,b)=>b.score-a.score)[0];
+    const latest=[...products].sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt))[0];
+
+    document.getElementById("dashboardAverageScore").textContent=`${average}/100`;
+    document.getElementById("dashboardBestProduct").textContent=`${best.brand} ${best.name}`;
+    document.getElementById("dashboardLastScan").textContent=new Date(latest.updatedAt).toLocaleDateString("de-DE");
+  }
+
   function renderSavedProducts(){
     const allProducts=readProducts().map(normalizeProduct);
+    populateProductTagFilter(allProducts);
+    renderProductDashboard();
     const products=filteredSortedProducts();
     const container=document.getElementById("savedProductsList");
     const count=document.getElementById("productCount");
@@ -1743,24 +1884,82 @@
       return;
     }
 
+    const breakdownA=a.breakdown||productBreakdown(a);
+    const breakdownB=b.breakdown||productBreakdown(b);
     const winner=a.score===b.score?null:(a.score>b.score?a:b);
-    const card=product=>`
+
+    const reasons=[];
+    if(a.score!==b.score)reasons.push(`${winner.brand} ${winner.name} hat den höheren Gesamt-Score.`);
+    if(breakdownA.profile!==breakdownB.profile){
+      const better=breakdownA.profile>breakdownB.profile?a:b;
+      reasons.push(`${better.brand} ${better.name} passt nach den gespeicherten Angaben besser zu deinem Hautprofil.`);
+    }
+    if(breakdownA.protection!==breakdownB.protection){
+      const better=breakdownA.protection>breakdownB.protection?a:b;
+      reasons.push(`${better.brand} ${better.name} erzielt die bessere UV-Schutz-Teilbewertung.`);
+    }
+    if(a.userRating!==b.userRating && (a.userRating||b.userRating)){
+      const better=a.userRating>b.userRating?a:b;
+      reasons.push(`${better.brand} ${better.name} wurde von dir besser bewertet.`);
+    }
+    if(a.favorite!==b.favorite){
+      const favored=a.favorite?a:b;
+      reasons.push(`${favored.brand} ${favored.name} ist als Favorit gespeichert.`);
+    }
+
+    const card=(product,breakdown)=>`
       <div class="comparison-card ${winner?.id===product.id?"winner":""}">
+        ${winner?.id===product.id?'<span class="best-ribbon">Persönlicher Sieger</span>':""}
         <h3>${escapeHtml(product.brand)} ${escapeHtml(product.name)}</h3>
-        <div class="comparison-row"><span>Score</span><strong>${product.score}/100</strong></div>
-        <div class="comparison-row"><span>SPF</span><strong>${escapeHtml(product.spf)}</strong></div>
-        <div class="comparison-row"><span>UVA</span><strong>${product.uva?"Ja":"Nicht bestätigt"}</strong></div>
-        <div class="comparison-row"><span>Parfumfrei</span><strong>${product.fragranceFree?"Ja":"Nein / unklar"}</strong></div>
-        <div class="comparison-row"><span>Nicht komedogen</span><strong>${product.nonComedogenic?"Ja":"Nein / unklar"}</strong></div>
+        <div class="comparison-row"><span>Gesamt</span><strong>${product.score}/100</strong></div>
+        <div class="comparison-score-bar"><div class="comparison-score-fill" style="width:${product.score}%"></div></div>
+        <div class="comparison-row"><span>Hautprofil</span><strong>${breakdown.profile}/40</strong></div>
+        <div class="comparison-row"><span>UV-Schutz</span><strong>${breakdown.protection}/25</strong></div>
+        <div class="comparison-row"><span>Inhaltsstoffe</span><strong>${breakdown.ingredients}/20</strong></div>
+        <div class="comparison-row"><span>Anwendung</span><strong>${breakdown.application}/10</strong></div>
+        <div class="comparison-row"><span>Eigene Bewertung</span><strong>${product.userRating?`${product.userRating}/5`:"–"}</strong></div>
       </div>`;
 
     document.getElementById("comparisonResult").innerHTML=`
-      <p><strong>${winner?`${escapeHtml(winner.brand)} ${escapeHtml(winner.name)} passt nach den gespeicherten Angaben besser zu deinem Profil.`:"Beide Produkte haben denselben Solara Produkt Score."}</strong></p>
-      <div class="comparison-grid">${card(a)}${card(b)}</div>`;
+      <p><strong>${winner
+        ?`${escapeHtml(winner.brand)} ${escapeHtml(winner.name)} ist nach den gespeicherten Informationen die bessere Übereinstimmung.`
+        :"Beide Produkte haben denselben Solara Produkt Score."}</strong></p>
+      ${reasons.length?`<ul class="compare-reason-list">${reasons.map(reason=>`<li>${escapeHtml(reason)}</li>`).join("")}</ul>`:""}
+      <div class="comparison-grid">${card(a,breakdownA)}${card(b,breakdownB)}</div>
+      <div class="notice">Der Vergleich ist eine Orientierung und keine Verträglichkeitsgarantie.</div>`;
   }
 
   function updateProfileProductStatus(){
     renderProfileStatus();
+  }
+
+
+  function exportSolaraData(){
+    const payload={
+      exportedAt:new Date().toISOString(),
+      version:"Beta 0.9B Lieferung 3.3",
+      profile:readProfile(),
+      products:readProducts().map(normalizeProduct)
+    };
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement("a");
+    link.href=url;
+    link.download=`solara-daten-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function showPrivacyInfo(){
+    alert(
+      "Datenschutz & Hinweise\n\n"+
+      "• Profil, Fotos und Produkte werden in dieser Testversion lokal im Browser gespeichert.\n"+
+      "• Beim Löschen der Safari-Websitedaten können diese Daten verloren gehen.\n"+
+      "• Solara gibt Empfehlungen und Hinweise, stellt aber keine Diagnosen.\n"+
+      "• Produktbewertungen sind keine Garantie für individuelle Verträglichkeit."
+    );
   }
 
   document.getElementById("startSolara").addEventListener("click",showHome);
@@ -1809,10 +2008,37 @@
   document.getElementById("openTodayProduct").addEventListener("click",()=>{
     if(todayRecommendedProductId)openProductDetail(todayRecommendedProductId);
   });
+  document.querySelectorAll("[data-edit-photo]").forEach(button=>{
+    button.addEventListener("click",()=>openPhotoEditor(button.dataset.editPhoto));
+  });
+  document.querySelectorAll("[data-retake-photo]").forEach(button=>{
+    button.addEventListener("click",()=>photoInputForSide(button.dataset.retakePhoto).click());
+  });
+  document.querySelectorAll("[data-remove-photo]").forEach(button=>{
+    button.addEventListener("click",()=>removePhoto(button.dataset.removePhoto));
+  });
+  document.querySelectorAll("[data-close-photo-editor]").forEach(node=>{
+    node.addEventListener("click",closePhotoEditor);
+  });
+  document.getElementById("rotatePhotoLeft").addEventListener("click",()=>{
+    photoEditorState.rotation=(photoEditorState.rotation-90)%360;
+    drawPhotoEditor();
+  });
+  document.getElementById("rotatePhotoRight").addEventListener("click",()=>{
+    photoEditorState.rotation=(photoEditorState.rotation+90)%360;
+    drawPhotoEditor();
+  });
+  document.getElementById("photoZoom").addEventListener("input",event=>{
+    photoEditorState.zoom=Number(event.target.value);
+    drawPhotoEditor();
+  });
+  document.getElementById("saveEditedPhoto").addEventListener("click",saveEditedPhoto);
+
   document.getElementById("analyseProduct").addEventListener("click",analyseCurrentProduct);
   document.getElementById("saveProduct").addEventListener("click",saveCurrentProduct);
   document.getElementById("productSearch").addEventListener("input",renderSavedProducts);
   document.getElementById("productSort").addEventListener("change",renderSavedProducts);
+  document.getElementById("productTagFilter").addEventListener("change",renderSavedProducts);
   document.getElementById("openCompareProducts").addEventListener("click",openProductCompare);
 
   document.querySelectorAll("[data-close-product-detail]").forEach(node=>{
@@ -1851,6 +2077,9 @@
   document.querySelectorAll(".nav-button").forEach(button=>{
     button.addEventListener("click",()=>openTab(button.dataset.tab));
   });
+
+  document.getElementById("exportSolaraData").addEventListener("click",exportSolaraData);
+  document.getElementById("showPrivacyInfo").addEventListener("click",showPrivacyInfo);
 
   document.getElementById("resetOnboarding").addEventListener("click",()=>{
     const first=confirm("Möchtest du dein gesamtes Solara-Profil wirklich löschen?");
