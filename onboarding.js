@@ -1,8 +1,20 @@
 
 (() => {
   "use strict";
-  const STORAGE_KEY = "solara_profile_v09a2";
-  const COMPLETE_KEY = "solara_onboarding_complete_v09a2";
+  const STORAGE_KEY = "solara_profile_v09a";
+  const COMPLETE_KEY = "solara_onboarding_complete_v09a";
+
+  function migratePreviousData(){
+    if(!localStorage.getItem(STORAGE_KEY)){
+      const previous=localStorage.getItem("solara_profile_v09a2");
+      if(previous)localStorage.setItem(STORAGE_KEY,previous);
+    }
+    if(!localStorage.getItem(COMPLETE_KEY)){
+      const previousComplete=localStorage.getItem("solara_onboarding_complete_v09a2");
+      if(previousComplete)localStorage.setItem(COMPLETE_KEY,previousComplete);
+    }
+  }
+  migratePreviousData();
 
   const stepIds = [
     "stepWelcome","stepName","stepAge","stepLocation","stepSkinTone",
@@ -280,6 +292,157 @@
     return ["Gute Nacht","Zeit für Ruhe und Regeneration."];
   }
 
+
+  function profileCompletion(){
+    const p=readProfile();
+    const a=p.answers||{};
+    const sections=[
+      {label:"Persönliche Daten",done:Boolean(p.firstName&&p.age)},
+      {label:"Wohnort",done:Boolean(p.homeLocation)},
+      {label:"Fitzpatrick-Test",done:Boolean(p.fitzpatrickRoman)},
+      {label:"Hautprofil",done:Boolean(a.skinType&&a.sensitive&&a.acne)},
+      {label:"Besondere Angaben",done:Boolean(a.conditions&&a.allergies&&a.medication)},
+      {label:"Produkte",done:false,future:true},
+      {label:"Hautverlauf",done:false,future:true}
+    ];
+    const available=sections.filter(s=>!s.future);
+    const completed=available.filter(s=>s.done).length;
+    const percent=Math.round(completed/available.length*100);
+    return {sections,percent};
+  }
+
+  function renderProfileStatus(){
+    const {sections,percent}=profileCompletion();
+    const percentNode=document.getElementById("profilePercent");
+    if(!percentNode)return;
+
+    percentNode.textContent=`${percent} % vollständig`;
+    document.getElementById("profileProgressBar").style.width=`${percent}%`;
+
+    const badge=document.getElementById("profileStatusBadge");
+    badge.textContent=percent===100?"Grundprofil vollständig":"In Bearbeitung";
+    badge.classList.toggle("complete",percent===100);
+
+    document.getElementById("profileChecklist").innerHTML=sections.map(section=>`
+      <li>
+        <span class="check-dot ${section.done?"done":""}">${section.done?"✓":section.future?"…":"○"}</span>
+        <span>${section.label}${section.future?" – folgt":""}</span>
+      </li>`).join("");
+  }
+
+  function selectOptions(options,current){
+    return options.map(([value,label])=>
+      `<option value="${value}" ${String(current)===String(value)?"selected":""}>${label}</option>`
+    ).join("");
+  }
+
+  function openEditModal(section){
+    const p=readProfile();
+    const a=p.answers||{};
+    const modal=document.getElementById("editModal");
+    const title=document.getElementById("editModalTitle");
+    const content=document.getElementById("editModalContent");
+    modal.dataset.section=section;
+
+    if(section==="personal"){
+      title.textContent="Persönliche Angaben";
+      content.innerHTML=`
+        <div class="edit-field"><label for="editName">Vorname</label><input id="editName" value="${p.firstName||""}"></div>
+        <div class="edit-field"><label for="editAge">Alter</label><input id="editAge" type="number" min="13" max="120" value="${p.age||""}"></div>
+        <div class="edit-field"><label for="editLocation">Wohnort</label><input id="editLocation" value="${p.homeLocation||""}"></div>`;
+    }else if(section==="skin"){
+      title.textContent="Hautprofil";
+      content.innerHTML=`
+        <div class="edit-field"><label for="editSkinType">Hauttyp</label>
+          <select id="editSkinType">${selectOptions([
+            ["veryDry","Sehr trocken"],["dry","Trocken"],["normal","Normal"],
+            ["combination","Mischhaut"],["oily","Ölig"],["unknown","Nicht sicher"]
+          ],a.skinType)}</select></div>
+        <div class="edit-field"><label for="editSensitive">Empfindlichkeit</label>
+          <select id="editSensitive">${selectOptions([
+            ["yes","Ja"],["sometimes","Manchmal"],["no","Nein"],["unknown","Nicht sicher"]
+          ],a.sensitive)}</select></div>
+        <div class="edit-field"><label for="editAcne">Unreinheiten</label>
+          <select id="editAcne">${selectOptions([
+            ["yes","Häufig"],["sometimes","Gelegentlich"],["no","Nein"],["unknown","Nicht sicher"]
+          ],a.acne)}</select></div>`;
+    }else if(section==="health"){
+      title.textContent="Besondere Angaben";
+      const allergyOptions=[
+        ["none","Keine bekannten"],["fragrance","Duftstoffe"],["preservatives","Konservierungsstoffe"],
+        ["filters","Bestimmte Sonnenfilter"],["other","Andere"],["unknown","Nicht sicher"]
+      ];
+      const conditionOptions=[
+        ["none","Keine"],["neurodermatitis","Neurodermitis"],["rosacea","Rosazea"],
+        ["psoriasis","Psoriasis"],["other","Andere"],["skip","Keine Angabe"]
+      ];
+      content.innerHTML=`
+        <p>Mehrfachauswahl möglich.</p>
+        <div class="edit-field"><label>Hauterkrankungen</label>
+          <div class="edit-check-list">${conditionOptions.map(([v,l])=>`
+            <label class="edit-check"><input type="checkbox" name="editConditions" value="${v}" ${(a.conditions||[]).includes(v)?"checked":""}><span>${l}</span></label>`).join("")}</div>
+        </div>
+        <div class="edit-field"><label>Allergien</label>
+          <div class="edit-check-list">${allergyOptions.map(([v,l])=>`
+            <label class="edit-check"><input type="checkbox" name="editAllergies" value="${v}" ${(a.allergies||[]).includes(v)?"checked":""}><span>${l}</span></label>`).join("")}</div>
+        </div>
+        <div class="edit-field"><label for="editMedication">Mögliche lichtempfindliche Medikamente</label>
+          <select id="editMedication">${selectOptions([
+            ["yes","Ja"],["no","Nein"],["unknown","Nicht sicher"],["skip","Keine Angabe"]
+          ],a.medication)}</select></div>`;
+    }
+
+    modal.classList.remove("hidden");
+  }
+
+  function closeEditModal(){
+    document.getElementById("editModal").classList.add("hidden");
+  }
+
+  function checkedValues(name){
+    return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(input=>input.value);
+  }
+
+  function saveEditModal(){
+    const section=document.getElementById("editModal").dataset.section;
+    const p=readProfile();
+    p.answers=p.answers||{};
+
+    if(section==="personal"){
+      const name=document.getElementById("editName").value.trim();
+      const ageValue=Number(document.getElementById("editAge").value);
+      const locationValue=document.getElementById("editLocation").value.trim();
+
+      if(name.length<2){
+        alert("Bitte gib einen gültigen Vornamen ein.");
+        return;
+      }
+      if(!Number.isInteger(ageValue)||ageValue<13||ageValue>120){
+        alert("Bitte gib ein Alter zwischen 13 und 120 ein.");
+        return;
+      }
+      p.firstName=name;
+      p.age=ageValue;
+      p.homeLocation=locationValue||"Automatischer Standort";
+    }else if(section==="skin"){
+      p.answers.skinType=document.getElementById("editSkinType").value;
+      p.answers.sensitive=document.getElementById("editSensitive").value;
+      p.answers.acne=document.getElementById("editAcne").value;
+    }else if(section==="health"){
+      p.answers.conditions=checkedValues("editConditions");
+      p.answers.allergies=checkedValues("editAllergies");
+      p.answers.medication=document.getElementById("editMedication").value;
+    }
+
+    writeProfile(p);
+    closeEditModal();
+    fillProfileSummary();
+    renderProfileStatus();
+    const [greeting,subtitle]=timeGreeting();
+    document.getElementById("homeGreeting").textContent=`${greeting}, ${p.firstName||"Ruby"}!`;
+    document.getElementById("personalGreeting").textContent=subtitle;
+  }
+
   function showHome(){
     const p=readProfile();
     document.getElementById("welcomeComplete").classList.add("hidden");
@@ -291,6 +454,7 @@
     document.getElementById("personalGreeting").textContent=subtitle;
     document.getElementById("scoreSpf").textContent=p.spfRecommendation||"–";
     fillProfileSummary();
+    renderProfileStatus();
     openTab("tabToday");
     loadLiveWeather();
   }
@@ -436,15 +600,39 @@
   }
 
   document.getElementById("startSolara").addEventListener("click",showHome);
+
+  document.querySelectorAll("[data-edit-section]").forEach(button=>{
+    button.addEventListener("click",()=>{
+      const section=button.dataset.editSection;
+      if(section==="fitzpatrick"){
+        const confirmed=confirm("Möchtest du den Fitzpatrick-Test erneut durchführen? Deine bisherigen Testantworten können dabei geändert werden.");
+        if(confirmed)showOnboarding(4);
+      }else{
+        openEditModal(section);
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-close-edit]").forEach(button=>{
+    button.addEventListener("click",closeEditModal);
+  });
+  document.getElementById("saveEditModal").addEventListener("click",saveEditModal);
+
+  document.getElementById("restartSkinTest").addEventListener("click",()=>{
+    const confirmed=confirm("Möchtest du den Hauttest erneut durchführen? Deine gespeicherten Antworten bleiben erhalten und können angepasst werden.");
+    if(confirmed)showOnboarding(4);
+  });
   document.getElementById("refreshWeather").addEventListener("click",loadLiveWeather);
 
   document.querySelectorAll(".nav-button").forEach(button=>{
     button.addEventListener("click",()=>openTab(button.dataset.tab));
   });
 
-  document.getElementById("editProfile").addEventListener("click",()=>showOnboarding(1));
   document.getElementById("resetOnboarding").addEventListener("click",()=>{
-    if(!confirm("Möchtest du dein Testprofil wirklich zurücksetzen?")) return;
+    const first=confirm("Möchtest du dein gesamtes Solara-Profil wirklich löschen?");
+    if(!first)return;
+    const second=confirm("Alle Hautprofil- und Fitzpatrick-Angaben werden gelöscht. Danach musst du den Fragebogen erneut ausfüllen. Wirklich fortfahren?");
+    if(!second)return;
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(COMPLETE_KEY);
     location.reload();

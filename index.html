@@ -432,6 +432,20 @@
         <section id="tabProfile" class="app-tab">
           <p class="eyebrow">Profil</p>
           <h1>Dein Sonnenprofil</h1>
+          <div class="profile-status-card">
+            <div class="profile-status-top">
+              <div>
+                <p class="eyebrow">Profilstatus</p>
+                <strong id="profilePercent">0 % vollständig</strong>
+              </div>
+              <span id="profileStatusBadge" class="status-badge">In Bearbeitung</span>
+            </div>
+            <div class="profile-progress-track">
+              <div id="profileProgressBar" class="profile-progress-bar"></div>
+            </div>
+            <ul id="profileChecklist" class="profile-checklist"></ul>
+          </div>
+
           <div class="profile-summary">
             <div class="summary-row"><span>Name</span><strong id="summaryName">–</strong></div>
             <div class="summary-row"><span>Alter</span><strong id="summaryAge">–</strong></div>
@@ -443,10 +457,42 @@
             <div class="summary-row"><span>Unreinheiten</span><strong id="summaryAcne">–</strong></div>
             <div class="summary-row"><span>Besondere Hinweise</span><strong id="summaryFlags">–</strong></div>
           </div>
-          <button id="editProfile" class="primary-button">Profil und Test bearbeiten</button>
-          <button id="resetOnboarding" class="text-button">Testprofil zurücksetzen</button>
+
+          <div class="profile-actions">
+            <button class="profile-action" data-edit-section="personal">
+              <span>Persönliche Angaben</span><small>Name, Alter und Wohnort bearbeiten</small>
+            </button>
+            <button class="profile-action" data-edit-section="fitzpatrick">
+              <span>Fitzpatrick-Test</span><small>Hauttyp-Test erneut durchführen</small>
+            </button>
+            <button class="profile-action" data-edit-section="skin">
+              <span>Hautprofil</span><small>Hauttyp, Empfindlichkeit und Unreinheiten ändern</small>
+            </button>
+            <button class="profile-action" data-edit-section="health">
+              <span>Besondere Angaben</span><small>Allergien, Medikamente und weitere Angaben ändern</small>
+            </button>
+          </div>
+
+          <button id="restartSkinTest" class="secondary-button">Hauttest erneut durchführen</button>
+          <button id="resetOnboarding" class="danger-button">Gesamtes Profil löschen</button>
         </section>
       </div>
+
+      <div id="editModal" class="edit-modal hidden" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+        <div class="edit-modal-backdrop" data-close-edit></div>
+        <div class="edit-modal-card">
+          <div class="edit-modal-header">
+            <div>
+              <p class="eyebrow">Profil bearbeiten</p>
+              <h2 id="editModalTitle">Angaben ändern</h2>
+            </div>
+            <button class="round-button" data-close-edit aria-label="Schließen">×</button>
+          </div>
+          <div id="editModalContent"></div>
+          <button id="saveEditModal" class="primary-button">Änderungen speichern</button>
+        </div>
+      </div>
+
 
       <nav class="bottom-nav" aria-label="Hauptnavigation">
         <button class="nav-button active" data-tab="tabToday"><span class="nav-icon">◉</span>Heute</button>
