@@ -3,6 +3,7 @@
   "use strict";
   const STORAGE_KEY = "solara_profile_v09a";
   const COMPLETE_KEY = "solara_onboarding_complete_v09a";
+  const PRODUCTS_KEY = "solara_products_v09b";
 
   function migratePreviousData(){
     if(!localStorage.getItem(STORAGE_KEY)){
@@ -493,6 +494,94 @@
     return response.json();
   }
 
+
+  function kawaiiFace(x,y,s=1){
+    return `<circle cx="${x-13*s}" cy="${y}" r="${3.2*s}" class="k-eye"/>
+      <circle cx="${x+13*s}" cy="${y}" r="${3.2*s}" class="k-eye"/>
+      <path d="M ${x-10*s} ${y+11*s} Q ${x} ${y+20*s} ${x+10*s} ${y+11*s}" class="k-mouth"/>
+      <ellipse cx="${x-24*s}" cy="${y+9*s}" rx="${8*s}" ry="${4.5*s}" class="k-cheek"/>
+      <ellipse cx="${x+24*s}" cy="${y+9*s}" rx="${8*s}" ry="${4.5*s}" class="k-cheek"/>`;
+  }
+
+  function kawaiiCloud(fill="#fffaf3",x=20,y=25,s=1){
+    return `<g transform="translate(${x} ${y}) scale(${s})">
+      <circle cx="45" cy="46" r="30" fill="${fill}"/>
+      <circle cx="85" cy="32" r="38" fill="${fill}"/>
+      <circle cx="126" cy="47" r="31" fill="${fill}"/>
+      <rect x="35" y="46" width="105" height="35" rx="18" fill="${fill}"/>
+      ${kawaiiFace(88,52,.72)}
+    </g>`;
+  }
+
+  function kawaiiWeatherSvg(code,isDay){
+    if(!isDay && [0,1].includes(code)){
+      return `<svg viewBox="0 0 200 150">
+        <circle cx="95" cy="65" r="40" fill="#f8efbf"/>
+        <circle cx="113" cy="50" r="38" fill="#243658"/>
+        ${kawaiiFace(82,67,.65)}
+        <circle cx="33" cy="30" r="4" class="k-star"/>
+        <circle cx="170" cy="35" r="5" class="k-star" style="animation-delay:.6s"/>
+        <circle cx="160" cy="105" r="3" class="k-star" style="animation-delay:1.1s"/>
+      </svg>`;
+    }
+
+    if(code===0){
+      const rays=Array.from({length:12},(_,i)=>{
+        const a=i*Math.PI/6;
+        return `<line x1="${100+Math.cos(a)*42}" y1="${68+Math.sin(a)*42}"
+          x2="${100+Math.cos(a)*57}" y2="${68+Math.sin(a)*57}"
+          stroke="#f3bd4f" stroke-width="7" stroke-linecap="round"/>`;
+      }).join("");
+      return `<svg viewBox="0 0 200 150">${rays}
+        <circle cx="100" cy="68" r="39" fill="#f8cf6c"/>
+        ${kawaiiFace(100,64,.75)}
+      </svg>`;
+    }
+
+    if([1,2].includes(code)){
+      return `<svg viewBox="0 0 200 150">
+        <circle cx="74" cy="55" r="32" fill="#f8cf6c"/>
+        ${kawaiiFace(74,51,.55)}
+        ${kawaiiCloud("#fffaf3",42,48,.82)}
+      </svg>`;
+    }
+
+    if(code===3){
+      return `<svg viewBox="0 0 200 150">${kawaiiCloud("#fffaf3",15,24,1.08)}</svg>`;
+    }
+
+    if([45,48].includes(code)){
+      return `<svg viewBox="0 0 200 150">${kawaiiCloud("#dfe5e7",15,15,1.05)}
+        <g stroke="#f5f7f7" stroke-width="9" stroke-linecap="round">
+          <line x1="30" y1="110" x2="170" y2="110"/>
+          <line x1="50" y1="132" x2="150" y2="132"/>
+        </g>
+      </svg>`;
+    }
+
+    if([71,73,75,77,85,86].includes(code)){
+      return `<svg viewBox="0 0 200 150">${kawaiiCloud("#fffaf3",15,8,1.05)}
+        <g fill="#fff" stroke="#b9dce5" stroke-width="2">
+          <g transform="translate(55 110)"><line x1="-7" y1="0" x2="7" y2="0"/><line x1="0" y1="-7" x2="0" y2="7"/></g>
+          <g transform="translate(100 126)"><line x1="-7" y1="0" x2="7" y2="0"/><line x1="0" y1="-7" x2="0" y2="7"/></g>
+          <g transform="translate(145 108)"><line x1="-7" y1="0" x2="7" y2="0"/><line x1="0" y1="-7" x2="0" y2="7"/></g>
+        </g>
+      </svg>`;
+    }
+
+    if([95,96,99].includes(code)){
+      return `<svg viewBox="0 0 200 150">${kawaiiCloud("#8f9294",15,4,1.05)}
+        <path d="M96 96 L77 126 H95 L84 149 L120 113 H104 L119 96Z" fill="#f4c544"/>
+        <path d="M54 105 C47 117 49 127 54 130 C61 127 62 117 54 105Z" class="k-drop"/>
+        <path d="M149 105 C142 117 144 127 149 130 C156 127 157 117 149 105Z" class="k-drop"/>
+      </svg>`;
+    }
+
+    return `<svg viewBox="0 0 200 150">${kawaiiCloud("#c8c9c7",15,4,1.05)}
+      ${[48,82,116,150].map((x,i)=>`<path d="M${x} 101 C${x-7} 114 ${x-6} 124 ${x} 127 C${x+7} 124 ${x+8} 114 ${x} 101Z" class="k-drop" style="animation:rain 1.8s ${i*.2}s infinite"/>`).join("")}
+    </svg>`;
+  }
+
   function weatherLabel(code){
     if(code===0)return "Klar";
     if([1,2].includes(code))return "Teilweise bewölkt";
@@ -567,6 +656,7 @@
       status.textContent=`Live · aktualisiert ${current.time?.slice(11,16)||""} Uhr`;
       document.getElementById("currentTemperature").textContent=`${Math.round(temp)} °C`;
       document.getElementById("weatherDescription").textContent=weatherLabel(current.weather_code);
+      document.getElementById("kawaiiWeather").innerHTML=kawaiiWeatherSvg(current.weather_code,isDay);
       document.getElementById("currentLocation").textContent=`${name} · Standort automatisch erkannt`;
       document.getElementById("currentUv").textContent=uv.toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1});
       document.getElementById("feelsLike").textContent=`${Math.round(Number(current.apparent_temperature||temp))} °C`;
@@ -587,6 +677,7 @@
       status.textContent="Live-Daten konnten nicht geladen werden.";
       document.getElementById("currentLocation").textContent=
         "Bitte Standortzugriff in Safari erlauben und erneut versuchen.";
+      document.getElementById("kawaiiWeather").innerHTML=kawaiiWeatherSvg(3,true);
       document.getElementById("todayRecommendations").innerHTML=
         "<li>Ohne Standort kann Solara den aktuellen UV-Index nicht zuverlässig bestimmen.</li>";
     }
@@ -597,6 +688,219 @@
     onboarding.classList.remove("hidden");
     populate();
     showStep(start);
+  }
+
+
+  let currentProductAnalysis=null;
+
+  function readProducts(){
+    try{return JSON.parse(localStorage.getItem(PRODUCTS_KEY))||[]}
+    catch{return []}
+  }
+
+  function writeProducts(products){
+    localStorage.setItem(PRODUCTS_KEY,JSON.stringify(products));
+  }
+
+  function previewImage(inputId,previewId){
+    const input=document.getElementById(inputId);
+    const preview=document.getElementById(previewId);
+    input.addEventListener("change",event=>{
+      const file=event.target.files?.[0];
+      if(!file)return;
+      const reader=new FileReader();
+      reader.onload=()=>{
+        preview.innerHTML=`<img src="${reader.result}" alt="Produktfoto">`;
+        preview.dataset.image=reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function ingredientFlags(text){
+    const normalized=text.toLowerCase();
+    return {
+      fragrance:/parfum|fragrance|limonene|linalool|citral|geraniol|citronellol/.test(normalized),
+      alcohol:/alcohol denat|ethanol/.test(normalized),
+      glycerin:/glycerin|glycerol/.test(normalized),
+      niacinamide:/niacinamide/.test(normalized),
+      panthenol:/panthenol/.test(normalized),
+      aloe:/aloe/.test(normalized),
+      zinc:/zinc oxide/.test(normalized),
+      titanium:/titanium dioxide/.test(normalized),
+      octocrylene:/octocrylene/.test(normalized),
+      avobenzone:/avobenzone|butyl methoxydibenzoylmethane/.test(normalized)
+    };
+  }
+
+  function analyseCurrentProduct(){
+    const p=readProfile();
+    const a=p.answers||{};
+    const brand=document.getElementById("productBrand").value.trim();
+    const name=document.getElementById("productName").value.trim();
+    const spf=document.getElementById("productSpf").value;
+    const area=document.getElementById("productArea").value;
+    const uva=document.getElementById("productUva").checked;
+    const waterproof=document.getElementById("productWaterproof").checked;
+    const fragranceFree=document.getElementById("productFragranceFree").checked;
+    const nonComedogenic=document.getElementById("productNonComedogenic").checked;
+    const ingredients=document.getElementById("ingredients").value.trim();
+
+    if(!brand||!name){
+      alert("Bitte gib Marke und Produktname ein.");
+      return;
+    }
+
+    let score=55;
+    const strengths=[];
+    const warnings=[];
+    const flags=ingredientFlags(ingredients);
+
+    if(spf==="50"||spf==="50+"){score+=15;strengths.push("Hoher angegebener Lichtschutzfaktor.");}
+    else if(spf==="30"){score+=9;strengths.push("Solider angegebener Lichtschutzfaktor.");}
+    else{warnings.push("Der SPF ist für längere oder starke UV-Exposition eher niedrig.");score-=7;}
+
+    if(uva){score+=10;strengths.push("UVA-/Breitbandschutz ist angegeben.");}
+    else{warnings.push("Ein UVA-/Breitbandschutz wurde nicht bestätigt.");score-=12;}
+
+    if(waterproof){score+=3;strengths.push("Wasserfestigkeit kann bei Sport oder Schwimmen hilfreich sein.");}
+
+    if(fragranceFree){score+=8;strengths.push("Als parfumfrei angegeben.");}
+    if(nonComedogenic){score+=7;strengths.push("Als nicht komedogen angegeben.");}
+
+    if(flags.glycerin||flags.panthenol||flags.aloe||flags.niacinamide){
+      score+=5;strengths.push("Pflegende oder feuchtigkeitsspendende Inhaltsstoffe erkannt.");
+    }
+
+    const sensitive=a.sensitive==="yes"||a.sensitive==="sometimes";
+    const dry=["veryDry","dry"].includes(a.skinType);
+    const oily=a.skinType==="oily"||a.acne==="yes"||a.acne==="sometimes";
+    const fragranceAllergy=Array.isArray(a.allergies)&&a.allergies.includes("fragrance");
+
+    if(flags.fragrance&&!fragranceFree){
+      warnings.push(fragranceAllergy
+        ?"Duftstoffe passen möglicherweise nicht zu deiner angegebenen Duftstoffallergie."
+        :"Duftstoffe können empfindliche Haut bei manchen Menschen reizen.");
+      score-=fragranceAllergy?22:sensitive?12:5;
+    }
+
+    if(flags.alcohol){
+      if(dry||sensitive){
+        warnings.push("Alcohol Denat. kann bei trockener oder empfindlicher Haut austrocknend oder reizend wirken.");
+        score-=12;
+      }else{
+        warnings.push("Alcohol Denat. ist enthalten; die individuelle Verträglichkeit kann unterschiedlich sein.");
+        score-=4;
+      }
+    }
+
+    if(oily&&nonComedogenic){
+      score+=5;
+    }else if(oily&&!nonComedogenic){
+      warnings.push("Bei zu Unreinheiten neigender Haut fehlt eine bestätigte nicht-komedogene Kennzeichnung.");
+      score-=5;
+    }
+
+    if(area==="children"){
+      warnings.push("Kinderprodukte sollten besonders sorgfältig anhand der Herstellerangaben verwendet werden.");
+    }
+
+    score=Math.max(0,Math.min(100,Math.round(score)));
+
+    let suitability="Mit Einschränkungen";
+    let className="caution";
+    if(score>=80){suitability="Sehr gut geeignet";className="good";}
+    else if(score<50){suitability="Für dein Profil eher ungeeignet";className="poor";}
+
+    if(!strengths.length)strengths.push("Keine besonderen Stärken aus den bestätigten Angaben abgeleitet.");
+    if(!warnings.length)warnings.push("Keine auffälligen Einschränkungen aus den eingegebenen Angaben erkannt.");
+
+    const confidenceParts=[
+      Boolean(brand&&name),Boolean(spf),Boolean(ingredients),uva,
+      Boolean(document.getElementById("frontPreview").dataset.image),
+      Boolean(document.getElementById("backPreview").dataset.image)
+    ];
+    const confidencePercent=Math.round(confidenceParts.filter(Boolean).length/confidenceParts.length*100);
+    const confidence=confidencePercent>=80?"Hoch":confidencePercent>=50?"Mittel":"Niedrig";
+
+    currentProductAnalysis={
+      id:Date.now(),brand,name,spf,area,uva,waterproof,fragranceFree,nonComedogenic,
+      ingredients,score,suitability,confidence,confidencePercent,
+      strengths,warnings,
+      frontImage:document.getElementById("frontPreview").dataset.image||"",
+      backImage:document.getElementById("backPreview").dataset.image||"",
+      createdAt:new Date().toISOString()
+    };
+
+    document.getElementById("productScore").textContent=score;
+    const badge=document.getElementById("productSuitability");
+    badge.textContent=suitability;
+    badge.className=`suitability-badge ${className}`;
+    document.getElementById("productConfidence").textContent=
+      `Vertrauen der Einschätzung: ${confidence} (${confidencePercent} % der wichtigen Angaben vorhanden)`;
+    document.getElementById("productStrengths").innerHTML=strengths.map(x=>`<li>${x}</li>`).join("");
+    document.getElementById("productWarnings").innerHTML=warnings.map(x=>`<li>${x}</li>`).join("");
+    document.getElementById("productExplanation").textContent=
+      `Der Score bewertet die Passung zu deinem gespeicherten Hautprofil und die von dir bestätigten Produktangaben. Er ist keine Garantie für individuelle Verträglichkeit.`;
+
+    renderAlternatives(currentProductAnalysis,a);
+    document.getElementById("productResult").classList.remove("hidden");
+    document.getElementById("productResult").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  function renderAlternatives(product,a){
+    const card=document.getElementById("alternativesCard");
+    const list=document.getElementById("alternativeList");
+    if(product.score>=80){
+      card.classList.add("hidden");
+      return;
+    }
+
+    const alternatives=[];
+    const sensitive=a.sensitive==="yes"||a.sensitive==="sometimes";
+    const oily=a.skinType==="oily"||a.acne==="yes"||a.acne==="sometimes";
+    const dry=["veryDry","dry"].includes(a.skinType);
+
+    if(sensitive)alternatives.push(["Parfumfreie Sensitive-Formulierung SPF 50+","Weniger Duftstoffrisiko für empfindliche Haut."]);
+    if(oily)alternatives.push(["Leichtes, nicht komedogenes Gesichtsfluid SPF 50+","Passender für ölige oder zu Unreinheiten neigende Haut."]);
+    if(dry)alternatives.push(["Feuchtigkeitsspendende Sonnencreme SPF 50+","Mit reichhaltigerer Pflege für trockene Haut."]);
+    if(!alternatives.length)alternatives.push(["Breitband-Sonnenschutz SPF 50+","Mit bestätigtem UVA-Schutz und klarer Hauttyp-Kennzeichnung."]);
+
+    list.innerHTML=alternatives.slice(0,3).map(([title,reason],i)=>`
+      <div class="alternative-item">
+        <strong>${i+1}. ${title}</strong>
+        <small>${reason}</small>
+      </div>`).join("");
+    card.classList.remove("hidden");
+  }
+
+  function saveCurrentProduct(){
+    if(!currentProductAnalysis){
+      alert("Bitte analysiere das Produkt zuerst.");
+      return;
+    }
+    const products=readProducts();
+    products.unshift(currentProductAnalysis);
+    writeProducts(products);
+    renderSavedProducts();
+    alert("Produkt wurde gespeichert.");
+  }
+
+  function renderSavedProducts(){
+    const products=readProducts();
+    const container=document.getElementById("savedProductsList");
+    if(!products.length){
+      container.innerHTML="<p>Noch keine Produkte gespeichert.</p>";
+      return;
+    }
+    container.innerHTML=products.map(product=>`
+      <div class="saved-product">
+        <div class="saved-product-top">
+          <div><strong>${product.brand} ${product.name}</strong><br><small>SPF ${product.spf} · ${new Date(product.createdAt).toLocaleDateString("de-DE")}</small></div>
+          <div class="saved-product-score">${product.score}/100</div>
+        </div>
+        <p>${product.suitability}</p>
+      </div>`).join("");
   }
 
   document.getElementById("startSolara").addEventListener("click",showHome);
@@ -623,6 +927,12 @@
     if(confirmed)showOnboarding(4);
   });
   document.getElementById("refreshWeather").addEventListener("click",loadLiveWeather);
+
+  previewImage("frontPhoto","frontPreview");
+  previewImage("backPhoto","backPreview");
+  document.getElementById("analyseProduct").addEventListener("click",analyseCurrentProduct);
+  document.getElementById("saveProduct").addEventListener("click",saveCurrentProduct);
+  renderSavedProducts();
 
   document.querySelectorAll(".nav-button").forEach(button=>{
     button.addEventListener("click",()=>openTab(button.dataset.tab));

@@ -367,7 +367,8 @@
           </header>
 
           <div id="weatherCard" class="weather-card">
-            <div>
+            <div id="kawaiiWeather" class="kawaii-weather" aria-label="Wetterillustration"></div>
+            <div class="weather-copy">
               <p id="weatherStatus" class="weather-status">Standort und Wetter werden geladen …</p>
               <div class="weather-main">
                 <strong id="currentTemperature">–</strong>
@@ -405,13 +406,102 @@
         <section id="tabProducts" class="app-tab">
           <p class="eyebrow">Produkte</p>
           <h1>Deine Sonnenprodukte</h1>
-          <div class="empty-state">
-            <h2>Produktscanner folgt</h2>
-            <p>In Beta 0.9B kannst du Vorder- und Rückseite deiner Sonnencreme fotografieren.</p>
+          <p>Fotografiere Vorder- und Rückseite. Bestätige anschließend die erkannten oder manuell eingetragenen Angaben.</p>
+
+          <div class="scanner-card">
+            <div class="scan-step">
+              <div class="scan-step-head">
+                <span class="scan-number">1</span>
+                <div><strong>Vorderseite</strong><small>Marke, Produktname und SPF</small></div>
+              </div>
+              <input id="frontPhoto" type="file" accept="image/*" capture="environment">
+              <div id="frontPreview" class="scan-preview">Noch kein Foto</div>
+            </div>
+
+            <div class="scan-step">
+              <div class="scan-step-head">
+                <span class="scan-number">2</span>
+                <div><strong>Rückseite</strong><small>INCI-Liste und Herstellerangaben</small></div>
+              </div>
+              <input id="backPhoto" type="file" accept="image/*" capture="environment">
+              <div id="backPreview" class="scan-preview">Noch kein Foto</div>
+            </div>
+          </div>
+
+          <div class="product-form-card">
+            <h2>Produktdaten bestätigen</h2>
+            <div class="edit-field"><label for="productBrand">Marke</label><input id="productBrand" placeholder="Zum Beispiel Nivea"></div>
+            <div class="edit-field"><label for="productName">Produktname</label><input id="productName" placeholder="Zum Beispiel UV Face Shine Control"></div>
+            <div class="form-grid">
+              <div class="edit-field"><label for="productSpf">SPF</label>
+                <select id="productSpf">
+                  <option value="15">15</option><option value="20">20</option>
+                  <option value="30">30</option><option value="50" selected>50</option>
+                  <option value="50+">50+</option>
+                </select>
+              </div>
+              <div class="edit-field"><label for="productArea">Anwendung</label>
+                <select id="productArea">
+                  <option value="face">Gesicht</option><option value="body">Körper</option>
+                  <option value="both">Gesicht & Körper</option><option value="children">Kinder</option>
+                </select>
+              </div>
+            </div>
+            <div class="toggle-grid">
+              <label class="toggle-row"><input id="productUva" type="checkbox" checked><span>UVA-/Breitbandschutz angegeben</span></label>
+              <label class="toggle-row"><input id="productWaterproof" type="checkbox"><span>Wasserfest</span></label>
+              <label class="toggle-row"><input id="productFragranceFree" type="checkbox"><span>Parfumfrei angegeben</span></label>
+              <label class="toggle-row"><input id="productNonComedogenic" type="checkbox"><span>Nicht komedogen angegeben</span></label>
+            </div>
+
+            <div class="edit-field">
+              <label for="ingredients">Inhaltsstoffe (INCI)</label>
+              <textarea id="ingredients" rows="7" placeholder="Fotografierten Text hier einfügen oder erkannte Inhaltsstoffe bestätigen, z. B. Aqua, Alcohol Denat., Glycerin, Parfum ..."></textarea>
+              <p class="field-note">Die automatische Texterkennung folgt in einer späteren Lieferung. In dieser Testversion kannst du die INCI-Liste manuell einfügen.</p>
+            </div>
+
+            <button id="analyseProduct" class="primary-button">Produkt analysieren</button>
+          </div>
+
+          <div id="productResult" class="product-result hidden">
+            <div class="product-score-card">
+              <p class="eyebrow">Solara Produkt Score</p>
+              <div id="productScore" class="product-score">–</div>
+              <div id="productSuitability" class="suitability-badge">Noch nicht bewertet</div>
+              <p id="productConfidence" class="product-confidence"></p>
+            </div>
+
+            <div class="analysis-card">
+              <h2>Warum diese Bewertung?</h2>
+              <div class="analysis-columns">
+                <div>
+                  <h3>Stärken</h3>
+                  <ul id="productStrengths"></ul>
+                </div>
+                <div>
+                  <h3>Darauf achten</h3>
+                  <ul id="productWarnings"></ul>
+                </div>
+              </div>
+              <p id="productExplanation"></p>
+            </div>
+
+            <div id="alternativesCard" class="analysis-card hidden">
+              <h2>Besser passende Alternativen</h2>
+              <p>Diese Beispiele orientieren sich an deinem Hautprofil. Preise und Verfügbarkeit werden in einer späteren Version ergänzt.</p>
+              <div id="alternativeList" class="alternative-list"></div>
+            </div>
+
+            <button id="saveProduct" class="primary-button">Zu meinen Produkten hinzufügen</button>
+          </div>
+
+          <div class="saved-products-card">
+            <h2>Meine Produkte</h2>
+            <div id="savedProductsList"><p>Noch keine Produkte gespeichert.</p></div>
           </div>
         </section>
 
-        <section id="tabSkin" class="app-tab">
+        <section id="tabSkin" class="app-tab"> class="app-tab">
           <p class="eyebrow">Haut</p>
           <h1>Dein Hautbereich</h1>
           <div class="empty-state">

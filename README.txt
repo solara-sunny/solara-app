@@ -1,30 +1,38 @@
-SOLARA BETA 0.9A – LIEFERUNG 5
+SOLARA BETA 0.9B – LIEFERUNG 1
 
-Diese Version enthält Lieferung 1–4 vollständig und ergänzt:
+Diese Version enthält Beta 0.9A Lieferung 1–5 vollständig und ergänzt:
 
-- dauerhaft gespeichertes Profil
-- Migration bereits vorhandener Daten aus Lieferung 4
-- direkter Start auf der Startseite nach abgeschlossenem Onboarding
-- Profilstatus und Fortschrittsanzeige
-- Checkliste für persönliche Daten, Fitzpatrick-Test und Hautprofil
-- einzelne Bearbeitungsbereiche:
-  • persönliche Angaben
-  • Fitzpatrick-Test
-  • Hautprofil
-  • Allergien, Hauterkrankungen und Medikamente
-- Hauttest erneut durchführen
-- doppelte Sicherheitsabfrage vor dem Löschen des Profils
-- Startseite aktualisiert sich nach Profiländerungen
-- Vorbereitung auf Beta 0.9B mit Produktscanner
+WETTER:
+- Kawaii-Wetterfiguren wieder auf der Startseite
+- Sonne, teilweise bewölkt, Wolken, Regen, Gewitter, Schnee, Nebel und Mond
+- Wetterfigur wechselt automatisch mit Live-Wetter und Tageszeit
+
+PRODUKTSCANNER:
+- Vorderseite fotografieren
+- Rückseite fotografieren
+- Bildvorschau
+- Marke, Produktname, SPF und Anwendungsbereich
+- UVA-/Breitbandschutz
+- Wasserfestigkeit
+- parfumfrei
+- nicht komedogen
+- manuelle INCI-Eingabe als Teststufe
+- erste regelbasierte Inhaltsstoffauswertung
+- persönlicher Solara Produkt Score
+- Stärken und Hinweise
+- Vertrauensgrad der Bewertung
+- Alternativvorschläge passend zum Hautprofil
+- Produkt lokal speichern
+- persönliche Produktbibliothek
 
 WICHTIG:
-Das Profil wird lokal im Browser beziehungsweise in der installierten Web-App gespeichert.
-Bei gelöschten Safari-Websitedaten oder einem Gerätewechsel können die lokalen Daten verloren gehen.
-Ein optionales Benutzerkonto und Cloud-Synchronisierung folgen später.
+Die automatische Texterkennung aus Fotos ist in dieser Lieferung noch nicht enthalten.
+Die INCI-Liste wird vorerst manuell eingegeben oder eingefügt.
+Die Produktbewertung ist eine Orientierung und keine medizinische oder dermatologische Diagnose.
 
 GITHUB:
 1. ZIP entpacken.
-2. Alle enthaltenen Dateien in dein Repository hochladen.
+2. Alle Dateien in dein Repository hochladen.
 3. Vorhandene Dateien mit gleichem Namen ersetzen.
 4. Commit changes.
 5. Unter Actions auf den grünen Haken warten.
