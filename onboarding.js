@@ -3,7 +3,14 @@
   "use strict";
   const STORAGE_KEY = "solara_profile_v09a";
   const COMPLETE_KEY = "solara_onboarding_complete_v09a";
-  const PRODUCTS_KEY = "solara_products_v09b";
+  const PRODUCTS_KEY = "solara_products_v09b2";
+
+  function migrateProductData(){
+    if(localStorage.getItem(PRODUCTS_KEY))return;
+    const previous=localStorage.getItem("solara_products_v09b");
+    if(previous)localStorage.setItem(PRODUCTS_KEY,previous);
+  }
+  migrateProductData();
 
   function migratePreviousData(){
     if(!localStorage.getItem(STORAGE_KEY)){
@@ -303,7 +310,7 @@
       {label:"Fitzpatrick-Test",done:Boolean(p.fitzpatrickRoman)},
       {label:"Hautprofil",done:Boolean(a.skinType&&a.sensitive&&a.acne)},
       {label:"Besondere Angaben",done:Boolean(a.conditions&&a.allergies&&a.medication)},
-      {label:"Produkte",done:false,future:true},
+      {label:"Produkte",done:readProducts().length>0,future:false},
       {label:"Hautverlauf",done:false,future:true}
     ];
     const available=sections.filter(s=>!s.future);
@@ -874,33 +881,369 @@
     card.classList.remove("hidden");
   }
 
+  function productBreakdown(product){
+    const protection=Math.min(25,
+      (product.spf==="50"||product.spf==="50+"?15:product.spf==="30"?10:5) +
+      (product.uva?10:0)
+    );
+
+    let profile=20;
+    const p=readProfile();
+    const a=p.answers||{};
+    const flags=ingredientFlags(product.ingredients||"");
+    const sensitive=a.sensitive==="yes"||a.sensitive==="sometimes";
+    const oily=a.skinType==="oily"||a.acne==="yes"||a.acne==="sometimes";
+    const dry=["veryDry","dry"].includes(a.skinType);
+
+    if(sensitive&&flags.fragrance)profile-=8;
+    if((sensitive||dry)&&flags.alcohol)profile-=6;
+    if(oily&&product.nonComedogenic)profile+=5;
+    profile=Math.max(0,Math.min(40,profile));
+
+    let ingredientsScore=12;
+    if(flags.glycerin||flags.panthenol||flags.aloe||flags.niacinamide)ingredientsScore+=5;
+    if(flags.fragrance)ingredientsScore-=4;
+    if(flags.alcohol)ingredientsScore-=3;
+    ingredientsScore=Math.max(0,Math.min(20,ingredientsScore));
+
+    let application=5;
+    if(product.waterproof)application+=3;
+    if(product.area==="both")application+=2;
+    application=Math.min(10,application);
+
+    let extras=0;
+    if(product.fragranceFree)extras+=2;
+    if(product.nonComedogenic)extras+=3;
+    extras=Math.min(5,extras);
+
+    return {
+      protection,
+      profile,
+      ingredients:ingredientsScore,
+      application,
+      extras
+    };
+  }
+
+  function normalizeProduct(product){
+    const normalized={
+      ...product,
+      id:product.id||Date.now()+Math.floor(Math.random()*1000),
+      favorite:Boolean(product.favorite),
+      scanCount:Number(product.scanCount||1),
+      updatedAt:product.updatedAt||product.createdAt||new Date().toISOString()
+    };
+    normalized.breakdown=product.breakdown||productBreakdown(normalized);
+    return normalized;
+  }
+
   function saveCurrentProduct(){
     if(!currentProductAnalysis){
       alert("Bitte analysiere das Produkt zuerst.");
       return;
     }
-    const products=readProducts();
-    products.unshift(currentProductAnalysis);
-    writeProducts(products);
-    renderSavedProducts();
-    alert("Produkt wurde gespeichert.");
+
+    try{
+      const products=readProducts().map(normalizeProduct);
+      const editingId=Number(document.getElementById("saveProduct").dataset.editingId||0);
+
+      if(editingId){
+        const index=products.findIndex(item=>item.id===editingId);
+        if(index>=0){
+          currentProductAnalysis.id=editingId;
+          currentProductAnalysis.favorite=products[index].favorite;
+          currentProductAnalysis.createdAt=products[index].createdAt;
+          currentProductAnalysis.scanCount=(products[index].scanCount||1)+1;
+          currentProductAnalysis.updatedAt=new Date().toISOString();
+          currentProductAnalysis.breakdown=productBreakdown(currentProductAnalysis);
+          products[index]=normalizeProduct(currentProductAnalysis);
+        }
+      }else{
+        currentProductAnalysis.favorite=false;
+        currentProductAnalysis.scanCount=1;
+        currentProductAnalysis.updatedAt=new Date().toISOString();
+        currentProductAnalysis.breakdown=productBreakdown(currentProductAnalysis);
+        products.unshift(normalizeProduct(currentProductAnalysis));
+      }
+
+      writeProducts(products);
+      document.getElementById("saveProduct").dataset.editingId="";
+      document.getElementById("saveProduct").textContent="Zu meinen Produkten hinzufügen";
+      renderSavedProducts();
+      updateProfileProductStatus();
+      alert(editingId?"Produkt wurde aktualisiert.":"Produkt wurde gespeichert.");
+    }catch(error){
+      console.error(error);
+      alert("Das Produkt konnte nicht gespeichert werden. Bitte versuche es erneut.");
+    }
+  }
+
+  function filteredSortedProducts(){
+    let products=readProducts().map(normalizeProduct);
+    const search=(document.getElementById("productSearch")?.value||"").trim().toLowerCase();
+    const sort=document.getElementById("productSort")?.value||"newest";
+
+    if(search){
+      products=products.filter(product=>
+        `${product.brand} ${product.name} ${product.spf}`.toLowerCase().includes(search)
+      );
+    }
+
+    if(sort==="score")products.sort((a,b)=>b.score-a.score);
+    else if(sort==="alphabetical")products.sort((a,b)=>`${a.brand} ${a.name}`.localeCompare(`${b.brand} ${b.name}`,"de"));
+    else if(sort==="favorites")products.sort((a,b)=>Number(b.favorite)-Number(a.favorite)||new Date(b.updatedAt)-new Date(a.updatedAt));
+    else products.sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt));
+
+    return products;
   }
 
   function renderSavedProducts(){
-    const products=readProducts();
+    const allProducts=readProducts().map(normalizeProduct);
+    const products=filteredSortedProducts();
     const container=document.getElementById("savedProductsList");
+    const count=document.getElementById("productCount");
+    if(count)count.textContent=`(${allProducts.length})`;
+
+    const badge=document.getElementById("bestProductBadge");
+    if(badge)badge.classList.toggle("hidden",allProducts.length===0);
+
     if(!products.length){
-      container.innerHTML="<p>Noch keine Produkte gespeichert.</p>";
+      container.innerHTML=allProducts.length
+        ?"<p>Keine Produkte passen zur aktuellen Suche.</p>"
+        :"<p>Noch keine Produkte gespeichert.</p>";
+      populateCompareSelects();
       return;
     }
+
+    const bestScore=Math.max(...allProducts.map(product=>product.score));
+
     container.innerHTML=products.map(product=>`
-      <div class="saved-product">
-        <div class="saved-product-top">
-          <div><strong>${product.brand} ${product.name}</strong><br><small>SPF ${product.spf} · ${new Date(product.createdAt).toLocaleDateString("de-DE")}</small></div>
-          <div class="saved-product-score">${product.score}/100</div>
+      <div class="product-library-card ${product.favorite?"favorite":""}" data-product-id="${product.id}">
+        <div class="product-library-top">
+          <div class="product-library-main">
+            <div class="product-thumb">
+              ${product.frontImage?`<img src="${product.frontImage}" alt="">`:"Kein Foto"}
+            </div>
+            <div class="product-library-title">
+              <strong>${escapeHtml(product.brand)} ${escapeHtml(product.name)}</strong>
+              <small>SPF ${escapeHtml(product.spf)} · ${escapeHtml(product.suitability)}</small>
+              <small>${product.favorite?"★ Favorit · ":""}${product.score===bestScore?"Beste Übereinstimmung · ":""}zuletzt ${new Date(product.updatedAt).toLocaleDateString("de-DE")}</small>
+            </div>
+          </div>
+          <div class="product-library-score">${product.score}/100</div>
         </div>
-        <p>${product.suitability}</p>
+        <div class="product-library-actions">
+          <button class="mini-button" data-view-product="${product.id}">Details</button>
+          <button class="mini-button" data-favorite-product="${product.id}">${product.favorite?"Favorit entfernen":"Favorit"}</button>
+          <button class="mini-button" data-edit-product="${product.id}">Bearbeiten</button>
+        </div>
       </div>`).join("");
+
+    container.querySelectorAll("[data-view-product]").forEach(button=>{
+      button.addEventListener("click",()=>openProductDetail(Number(button.dataset.viewProduct)));
+    });
+    container.querySelectorAll("[data-favorite-product]").forEach(button=>{
+      button.addEventListener("click",()=>toggleProductFavorite(Number(button.dataset.favoriteProduct)));
+    });
+    container.querySelectorAll("[data-edit-product]").forEach(button=>{
+      button.addEventListener("click",()=>editProduct(Number(button.dataset.editProduct)));
+    });
+
+    populateCompareSelects();
+  }
+
+  function escapeHtml(value){
+    return String(value??"")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  let activeProductId=null;
+
+  function openProductDetail(id){
+    const product=readProducts().map(normalizeProduct).find(item=>item.id===id);
+    if(!product)return;
+    activeProductId=id;
+
+    document.getElementById("detailTitle").textContent=`${product.brand} ${product.name}`;
+    document.getElementById("detailImages").innerHTML=`
+      <div class="detail-image">${product.frontImage?`<img src="${product.frontImage}" alt="Vorderseite">`:"Keine Vorderseite"}</div>
+      <div class="detail-image">${product.backImage?`<img src="${product.backImage}" alt="Rückseite">`:"Keine Rückseite"}</div>`;
+
+    const breakdown=product.breakdown||productBreakdown(product);
+    const ingredients=(product.ingredients||"").split(",").map(x=>x.trim()).filter(Boolean).slice(0,20);
+
+    document.getElementById("detailContent").innerHTML=`
+      <div class="product-score-card">
+        <p class="eyebrow">Solara Produkt Score</p>
+        <div class="product-score">${product.score}</div>
+        <div class="suitability-badge ${product.score>=80?"good":product.score<50?"poor":"caution"}">${escapeHtml(product.suitability)}</div>
+      </div>
+
+      <div class="detail-score-grid">
+        <div class="detail-score-item"><span>Hautprofil</span><strong>${breakdown.profile}/40</strong></div>
+        <div class="detail-score-item"><span>UV-Schutz</span><strong>${breakdown.protection}/25</strong></div>
+        <div class="detail-score-item"><span>Inhaltsstoffe</span><strong>${breakdown.ingredients}/20</strong></div>
+        <div class="detail-score-item"><span>Anwendung</span><strong>${breakdown.application}/10</strong></div>
+        <div class="detail-score-item"><span>Extras</span><strong>${breakdown.extras}/5</strong></div>
+        <div class="detail-score-item"><span>Vertrauen</span><strong>${escapeHtml(product.confidence)}</strong></div>
+      </div>
+
+      <div class="analysis-card">
+        <h3>Warum ${product.score} Punkte?</h3>
+        <p>Die Bewertung berücksichtigt dein gespeichertes Hautprofil, den bestätigten UV-Schutz, Inhaltsstoffe, Anwendung und zusätzliche Eigenschaften.</p>
+        <h3>Stärken</h3>
+        <ul>${(product.strengths||[]).map(item=>`<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        <h3>Darauf achten</h3>
+        <ul>${(product.warnings||[]).map(item=>`<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      </div>
+
+      <div class="analysis-card">
+        <h3>Inhaltsstoffe</h3>
+        <div class="ingredient-chip-list">
+          ${ingredients.length?ingredients.map(item=>`<button class="ingredient-chip" data-ingredient="${escapeHtml(item)}">${escapeHtml(item)}</button>`).join(""):"<span>Keine INCI-Liste gespeichert.</span>"}
+        </div>
+      </div>
+
+      <div class="analysis-card">
+        <h3>Produktverlauf</h3>
+        <p>Erstmals gespeichert: ${new Date(product.createdAt).toLocaleDateString("de-DE")}</p>
+        <p>Zuletzt geändert: ${new Date(product.updatedAt).toLocaleDateString("de-DE")}</p>
+        <p>Analysen: ${product.scanCount||1}</p>
+      </div>`;
+
+    document.querySelectorAll("[data-ingredient]").forEach(button=>{
+      button.addEventListener("click",()=>explainIngredient(button.dataset.ingredient));
+    });
+
+    document.getElementById("toggleFavoriteProduct").textContent=product.favorite?"Favorit entfernen":"Als Favorit markieren";
+    document.getElementById("productDetailModal").classList.remove("hidden");
+  }
+
+  function closeProductDetail(){
+    document.getElementById("productDetailModal").classList.add("hidden");
+    activeProductId=null;
+  }
+
+  function toggleProductFavorite(id){
+    const products=readProducts().map(normalizeProduct);
+    const product=products.find(item=>item.id===id);
+    if(!product)return;
+    product.favorite=!product.favorite;
+    product.updatedAt=new Date().toISOString();
+    writeProducts(products);
+    renderSavedProducts();
+    if(activeProductId===id)openProductDetail(id);
+  }
+
+  function editProduct(id){
+    const product=readProducts().map(normalizeProduct).find(item=>item.id===id);
+    if(!product)return;
+
+    document.getElementById("productBrand").value=product.brand||"";
+    document.getElementById("productName").value=product.name||"";
+    document.getElementById("productSpf").value=product.spf||"50";
+    document.getElementById("productArea").value=product.area||"face";
+    document.getElementById("productUva").checked=Boolean(product.uva);
+    document.getElementById("productWaterproof").checked=Boolean(product.waterproof);
+    document.getElementById("productFragranceFree").checked=Boolean(product.fragranceFree);
+    document.getElementById("productNonComedogenic").checked=Boolean(product.nonComedogenic);
+    document.getElementById("ingredients").value=product.ingredients||"";
+
+    const front=document.getElementById("frontPreview");
+    const back=document.getElementById("backPreview");
+    front.dataset.image=product.frontImage||"";
+    back.dataset.image=product.backImage||"";
+    front.innerHTML=product.frontImage?`<img src="${product.frontImage}" alt="Vorderseite">`:"Noch kein Foto";
+    back.innerHTML=product.backImage?`<img src="${product.backImage}" alt="Rückseite">`:"Noch kein Foto";
+
+    currentProductAnalysis={...product};
+    document.getElementById("saveProduct").dataset.editingId=String(id);
+    document.getElementById("saveProduct").textContent="Änderungen speichern";
+    closeProductDetail();
+    openTab("tabProducts");
+    document.getElementById("productBrand").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  function deleteProduct(id){
+    if(!confirm("Möchtest du dieses Produkt wirklich löschen?"))return;
+    const products=readProducts().map(normalizeProduct).filter(item=>item.id!==id);
+    writeProducts(products);
+    closeProductDetail();
+    renderSavedProducts();
+    updateProfileProductStatus();
+  }
+
+  function explainIngredient(name){
+    const normalized=name.toLowerCase();
+    let explanation="Für diesen Inhaltsstoff ist in dieser Testversion noch keine ausführliche Erklärung hinterlegt.";
+    if(/niacinamide/.test(normalized))explanation="Niacinamid unterstützt die Hautbarriere und wird häufig bei empfindlicher oder zu Unreinheiten neigender Haut eingesetzt.";
+    else if(/glycerin|glycerol/.test(normalized))explanation="Glycerin bindet Feuchtigkeit und kann trockene Haut unterstützen.";
+    else if(/panthenol/.test(normalized))explanation="Panthenol wird häufig wegen seiner beruhigenden und pflegenden Eigenschaften verwendet.";
+    else if(/parfum|fragrance/.test(normalized))explanation="Duftstoffe sorgen für Geruch. Empfindliche Haut oder Menschen mit Duftstoffallergie können darauf reagieren.";
+    else if(/alcohol denat|ethanol/.test(normalized))explanation="Alcohol Denat. kann Formulierungen leichter machen, bei trockener oder empfindlicher Haut aber austrocknend wirken.";
+    else if(/zinc oxide/.test(normalized))explanation="Zinkoxid ist ein mineralischer UV-Filter und bietet Schutz im UVA- und UVB-Bereich.";
+    else if(/titanium dioxide/.test(normalized))explanation="Titandioxid ist ein mineralischer UV-Filter. Die Schutzwirkung hängt von der geprüften Gesamtformulierung ab.";
+    alert(`${name}\n\n${explanation}`);
+  }
+
+  function populateCompareSelects(){
+    const products=readProducts().map(normalizeProduct);
+    const options=products.map(product=>`<option value="${product.id}">${escapeHtml(product.brand)} ${escapeHtml(product.name)} (${product.score})</option>`).join("");
+    ["compareA","compareB"].forEach(id=>{
+      const select=document.getElementById(id);
+      if(select)select.innerHTML=options;
+    });
+    if(products.length>1){
+      document.getElementById("compareB").selectedIndex=1;
+    }
+  }
+
+  function openProductCompare(){
+    const products=readProducts();
+    if(products.length<2){
+      alert("Speichere mindestens zwei Produkte, um sie zu vergleichen.");
+      return;
+    }
+    populateCompareSelects();
+    document.getElementById("comparisonResult").innerHTML="";
+    document.getElementById("productCompareModal").classList.remove("hidden");
+  }
+
+  function closeProductCompare(){
+    document.getElementById("productCompareModal").classList.add("hidden");
+  }
+
+  function runProductComparison(){
+    const products=readProducts().map(normalizeProduct);
+    const a=products.find(item=>item.id===Number(document.getElementById("compareA").value));
+    const b=products.find(item=>item.id===Number(document.getElementById("compareB").value));
+    if(!a||!b||a.id===b.id){
+      alert("Bitte wähle zwei unterschiedliche Produkte.");
+      return;
+    }
+
+    const winner=a.score===b.score?null:(a.score>b.score?a:b);
+    const card=product=>`
+      <div class="comparison-card ${winner?.id===product.id?"winner":""}">
+        <h3>${escapeHtml(product.brand)} ${escapeHtml(product.name)}</h3>
+        <div class="comparison-row"><span>Score</span><strong>${product.score}/100</strong></div>
+        <div class="comparison-row"><span>SPF</span><strong>${escapeHtml(product.spf)}</strong></div>
+        <div class="comparison-row"><span>UVA</span><strong>${product.uva?"Ja":"Nicht bestätigt"}</strong></div>
+        <div class="comparison-row"><span>Parfumfrei</span><strong>${product.fragranceFree?"Ja":"Nein / unklar"}</strong></div>
+        <div class="comparison-row"><span>Nicht komedogen</span><strong>${product.nonComedogenic?"Ja":"Nein / unklar"}</strong></div>
+      </div>`;
+
+    document.getElementById("comparisonResult").innerHTML=`
+      <p><strong>${winner?`${escapeHtml(winner.brand)} ${escapeHtml(winner.name)} passt nach den gespeicherten Angaben besser zu deinem Profil.`:"Beide Produkte haben denselben Solara Produkt Score."}</strong></p>
+      <div class="comparison-grid">${card(a)}${card(b)}</div>`;
+  }
+
+  function updateProfileProductStatus(){
+    renderProfileStatus();
   }
 
   document.getElementById("startSolara").addEventListener("click",showHome);
@@ -932,6 +1275,35 @@
   previewImage("backPhoto","backPreview");
   document.getElementById("analyseProduct").addEventListener("click",analyseCurrentProduct);
   document.getElementById("saveProduct").addEventListener("click",saveCurrentProduct);
+  document.getElementById("productSearch").addEventListener("input",renderSavedProducts);
+  document.getElementById("productSort").addEventListener("change",renderSavedProducts);
+  document.getElementById("openCompareProducts").addEventListener("click",openProductCompare);
+
+  document.querySelectorAll("[data-close-product-detail]").forEach(node=>{
+    node.addEventListener("click",closeProductDetail);
+  });
+  document.querySelectorAll("[data-close-product-compare]").forEach(node=>{
+    node.addEventListener("click",closeProductCompare);
+  });
+
+  document.getElementById("toggleFavoriteProduct").addEventListener("click",()=>{
+    if(activeProductId)toggleProductFavorite(activeProductId);
+  });
+  document.getElementById("editSavedProduct").addEventListener("click",()=>{
+    if(activeProductId)editProduct(activeProductId);
+  });
+  document.getElementById("compareSavedProduct").addEventListener("click",()=>{
+    if(!activeProductId)return;
+    closeProductDetail();
+    openProductCompare();
+    const select=document.getElementById("compareA");
+    select.value=String(activeProductId);
+  });
+  document.getElementById("deleteSavedProduct").addEventListener("click",()=>{
+    if(activeProductId)deleteProduct(activeProductId);
+  });
+  document.getElementById("runProductComparison").addEventListener("click",runProductComparison);
+
   renderSavedProducts();
 
   document.querySelectorAll(".nav-button").forEach(button=>{

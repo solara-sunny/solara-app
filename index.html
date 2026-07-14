@@ -496,8 +496,74 @@
           </div>
 
           <div class="saved-products-card">
-            <h2>Meine Produkte</h2>
+            <div class="library-header">
+              <div>
+                <p class="eyebrow">Produktbibliothek</p>
+                <h2>Meine Produkte <span id="productCount">(0)</span></h2>
+              </div>
+              <span id="bestProductBadge" class="best-product-badge hidden">Beste Übereinstimmung</span>
+            </div>
+
+            <button id="openCompareProducts" class="secondary-button compare-library-button">Produkte vergleichen</button>
+            <div class="library-tools">
+              <input id="productSearch" type="search" placeholder="Produkte durchsuchen">
+              <select id="productSort">
+                <option value="newest">Neueste zuerst</option>
+                <option value="score">Höchster Score</option>
+                <option value="alphabetical">Alphabetisch</option>
+                <option value="favorites">Favoriten zuerst</option>
+              </select>
+            </div>
+
             <div id="savedProductsList"><p>Noch keine Produkte gespeichert.</p></div>
+          </div>
+
+          <div id="productDetailModal" class="edit-modal hidden" role="dialog" aria-modal="true">
+            <div class="edit-modal-backdrop" data-close-product-detail></div>
+            <div class="edit-modal-card product-detail-card">
+              <div class="edit-modal-header">
+                <div>
+                  <p class="eyebrow">Produktdetails</p>
+                  <h2 id="detailTitle">Produkt</h2>
+                </div>
+                <button class="round-button" data-close-product-detail aria-label="Schließen">×</button>
+              </div>
+
+              <div id="detailImages" class="detail-images"></div>
+              <div id="detailContent"></div>
+
+              <div class="detail-actions">
+                <button id="toggleFavoriteProduct" class="secondary-button">Als Favorit markieren</button>
+                <button id="editSavedProduct" class="secondary-button">Produkt bearbeiten</button>
+                <button id="compareSavedProduct" class="secondary-button">Zum Vergleich auswählen</button>
+                <button id="deleteSavedProduct" class="danger-button">Produkt löschen</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="productCompareModal" class="edit-modal hidden" role="dialog" aria-modal="true">
+            <div class="edit-modal-backdrop" data-close-product-compare></div>
+            <div class="edit-modal-card">
+              <div class="edit-modal-header">
+                <div>
+                  <p class="eyebrow">Produktvergleich</p>
+                  <h2>Zwei Produkte vergleichen</h2>
+                </div>
+                <button class="round-button" data-close-product-compare aria-label="Schließen">×</button>
+              </div>
+              <div class="form-grid">
+                <div class="edit-field">
+                  <label for="compareA">Produkt A</label>
+                  <select id="compareA"></select>
+                </div>
+                <div class="edit-field">
+                  <label for="compareB">Produkt B</label>
+                  <select id="compareB"></select>
+                </div>
+              </div>
+              <button id="runProductComparison" class="primary-button">Vergleichen</button>
+              <div id="comparisonResult" class="comparison-result"></div>
+            </div>
           </div>
         </section>
 
