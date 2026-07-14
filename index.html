@@ -395,6 +395,18 @@
             </p>
           </div>
 
+          <div id="todayProductCard" class="today-product-card hidden">
+            <div class="today-product-header">
+              <div>
+                <p class="eyebrow">Heute empfohlen</p>
+                <h2 id="todayProductName">Dein bestes Produkt</h2>
+              </div>
+              <span id="todayProductScore" class="today-product-score">–</span>
+            </div>
+            <p id="todayProductReason">Solara wählt aus deinen gespeicherten Produkten die passendste Option für heute.</p>
+            <button id="openTodayProduct" class="secondary-button">Produktdetails öffnen</button>
+          </div>
+
           <div class="today-card">
             <h2>Heute für dich</h2>
             <ul id="todayRecommendations" class="recommendation-list">
@@ -457,7 +469,46 @@
             <div class="edit-field">
               <label for="ingredients">Inhaltsstoffe (INCI)</label>
               <textarea id="ingredients" rows="7" placeholder="Fotografierten Text hier einfügen oder erkannte Inhaltsstoffe bestätigen, z. B. Aqua, Alcohol Denat., Glycerin, Parfum ..."></textarea>
-              <p class="field-note">Die automatische Texterkennung folgt in einer späteren Lieferung. In dieser Testversion kannst du die INCI-Liste manuell einfügen.</p>
+              <p class="field-note">Die automatische Texterkennung ist technisch vorbereitet, aber in dieser Version noch nicht zuverlässig genug für eine vollständige automatische Auswertung.</p>
+              <button id="prepareOcr" class="secondary-button" type="button">Erkannten Text prüfen</button>
+              <p id="ocrHint" class="field-note"></p>
+            </div>
+
+            <div class="edit-field">
+              <label>Produkt-Tags</label>
+              <div class="tag-grid" id="productTags">
+                <button type="button" class="tag-button" data-tag="Alltag">Alltag</button>
+                <button type="button" class="tag-button" data-tag="Gesicht">Gesicht</button>
+                <button type="button" class="tag-button" data-tag="Körper">Körper</button>
+                <button type="button" class="tag-button" data-tag="Sport">Sport</button>
+                <button type="button" class="tag-button" data-tag="Urlaub">Urlaub</button>
+                <button type="button" class="tag-button" data-tag="Kinder">Kinder</button>
+                <button type="button" class="tag-button" data-tag="Empfindliche Haut">Empfindliche Haut</button>
+                <button type="button" class="tag-button" data-tag="Wasserfest">Wasserfest</button>
+              </div>
+            </div>
+
+            <div class="edit-field">
+              <label>Deine Erfahrung</label>
+              <div id="userRating" class="rating-row" aria-label="Eigene Bewertung">
+                <button type="button" data-rating="1">☆</button>
+                <button type="button" data-rating="2">☆</button>
+                <button type="button" data-rating="3">☆</button>
+                <button type="button" data-rating="4">☆</button>
+                <button type="button" data-rating="5">☆</button>
+              </div>
+              <div class="experience-grid">
+                <label><input id="expFastAbsorb" type="checkbox"> Zieht schnell ein</label>
+                <label><input id="expSticky" type="checkbox"> Klebt</label>
+                <label><input id="expWhiteCast" type="checkbox"> Weißelt</label>
+                <label><input id="expGreasy" type="checkbox"> Hinterlässt Fettfilm</label>
+                <label><input id="expNiceSmell" type="checkbox"> Angenehmer Geruch</label>
+              </div>
+            </div>
+
+            <div class="edit-field">
+              <label for="productNotes">Eigene Notiz</label>
+              <textarea id="productNotes" rows="4" placeholder="Zum Beispiel: gut unter Make-up, brennt nicht in den Augen ..."></textarea>
             </div>
 
             <button id="analyseProduct" class="primary-button">Produkt analysieren</button>
@@ -470,6 +521,18 @@
               <div id="productSuitability" class="suitability-badge">Noch nicht bewertet</div>
               <p id="productConfidence" class="product-confidence"></p>
             </div>
+
+            <div class="analysis-card">
+              <h2>Inhaltsstoffgruppen</h2>
+              <p>Solara ordnet die eingegebene INCI-Liste verständlichen Gruppen zu.</p>
+              <div id="ingredientGroups" class="ingredient-groups"></div>
+            </div>
+
+            <div class="analysis-card">
+              <h2>Persönliche Hinweise</h2>
+              <div id="personalIngredientWarnings" class="personal-warning-list"></div>
+            </div>
+
 
             <div class="analysis-card">
               <h2>Warum diese Bewertung?</h2>
@@ -499,7 +562,7 @@
             <div class="library-header">
               <div>
                 <p class="eyebrow">Produktbibliothek</p>
-                <h2>Meine Produkte <span id="productCount">(0)</span></h2>
+                <h2>Mein Sonnenschrank <span id="productCount">(0)</span></h2>
               </div>
               <span id="bestProductBadge" class="best-product-badge hidden">Beste Übereinstimmung</span>
             </div>
@@ -540,6 +603,24 @@
               </div>
             </div>
           </div>
+
+          <div id="ingredientKnowledgeModal" class="edit-modal hidden" role="dialog" aria-modal="true">
+            <div class="edit-modal-backdrop" data-close-ingredient-knowledge></div>
+            <div class="edit-modal-card knowledge-card">
+              <div class="edit-modal-header">
+                <div>
+                  <p class="eyebrow">Solara Wissen</p>
+                  <h2 id="knowledgeTitle">Inhaltsstoff</h2>
+                </div>
+                <button class="round-button" data-close-ingredient-knowledge aria-label="Schließen">×</button>
+              </div>
+              <div id="knowledgeContent"></div>
+              <div class="notice">
+                Die Erklärung dient der Orientierung. Die Wirkung und Verträglichkeit hängen von der gesamten Formulierung und der individuellen Haut ab.
+              </div>
+            </div>
+          </div>
+
 
           <div id="productCompareModal" class="edit-modal hidden" role="dialog" aria-modal="true">
             <div class="edit-modal-backdrop" data-close-product-compare></div>

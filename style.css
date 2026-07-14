@@ -345,3 +345,133 @@ textarea{
 @media(max-width:390px){
   .library-tools,.comparison-grid{grid-template-columns:1fr}
 }
+
+.today-product-card{
+  margin-top:15px;padding:20px;border-radius:25px;
+  background:linear-gradient(145deg,#fff7db,#f7d68d);
+  color:var(--text);box-shadow:0 12px 34px rgba(83,61,23,.09)
+}
+.today-product-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.today-product-header h2{margin:0}
+.today-product-score{
+  min-width:64px;padding:10px;border-radius:18px;background:rgba(255,255,255,.7);
+  text-align:center;font-size:20px;font-weight:900;color:#8d5c00
+}
+.tag-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.tag-button{
+  border:1px solid #e4d5bf;border-radius:999px;padding:8px 11px;
+  background:white;color:var(--text);font-size:12px;font-weight:800
+}
+.tag-button.selected{background:#fff0cf;border-color:#e8b84d;color:#8a5900}
+.rating-row{display:flex;gap:4px;margin-top:6px}
+.rating-row button{
+  border:0;background:transparent;color:#d7a32b;font-size:34px;line-height:1;padding:2px
+}
+.rating-row button.selected{color:#e4a917}
+.experience-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px
+}
+.experience-grid label{
+  display:flex;align-items:center;gap:8px;margin:0;padding:10px;
+  border:1px solid #eadbc3;border-radius:14px;background:white;font-size:13px
+}
+.experience-grid input{width:19px;height:19px;min-height:auto}
+.product-tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.product-tag-chip{
+  padding:5px 8px;border-radius:999px;background:#fff0cf;color:#8c5d00;font-size:11px;font-weight:800
+}
+.user-experience-card{
+  margin-top:12px;padding:14px;border:1px solid #eadbc3;border-radius:16px;background:white
+}
+.user-rating-display{color:#e0a51d;font-size:22px;letter-spacing:2px}
+@media(max-width:390px){
+  .experience-grid{grid-template-columns:1fr}
+}
+
+.ingredient-groups{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  margin-top:14px
+}
+.ingredient-group-card{
+  padding:14px;
+  border:1px solid #eadbc3;
+  border-radius:17px;
+  background:white
+}
+.ingredient-group-card h3{
+  margin:0 0 7px;
+  font-size:15px
+}
+.ingredient-group-card p{
+  margin:0;
+  font-size:12px
+}
+.ingredient-group-card ul{
+  margin:8px 0 0;
+  padding-left:18px
+}
+.ingredient-group-card li{
+  margin:5px 0;
+  font-size:12px
+}
+.personal-warning-list{
+  display:grid;
+  gap:9px;
+  margin-top:12px
+}
+.personal-warning{
+  padding:13px;
+  border-radius:16px;
+  border:1px solid #ecd4a1;
+  background:#fff7df
+}
+.personal-warning.positive{
+  border-color:#bfdfc5;
+  background:#edf8ef
+}
+.personal-warning strong{
+  display:block;
+  margin-bottom:4px
+}
+.knowledge-card #knowledgeContent{
+  margin-top:15px
+}
+.knowledge-level{
+  display:inline-block;
+  margin-bottom:12px;
+  padding:7px 11px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:900
+}
+.knowledge-level.good{
+  background:#dff2e3;
+  color:#28623a
+}
+.knowledge-level.note{
+  background:#fff0cf;
+  color:#885a00
+}
+.knowledge-level.neutral{
+  background:#e9eef2;
+  color:#485763
+}
+.knowledge-details{
+  padding:16px;
+  border-radius:18px;
+  background:white;
+  border:1px solid #eadbc3
+}
+.knowledge-details h3{
+  margin-top:0
+}
+.auto-tag-note{
+  margin-top:8px;
+  color:#7c6d60;
+  font-size:12px
+}
+@media(max-width:390px){
+  .ingredient-groups{grid-template-columns:1fr}
+}

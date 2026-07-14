@@ -3,7 +3,17 @@
   "use strict";
   const STORAGE_KEY = "solara_profile_v09a";
   const COMPLETE_KEY = "solara_onboarding_complete_v09a";
-  const PRODUCTS_KEY = "solara_products_v09b2";
+  const PRODUCTS_KEY = "solara_products_v09b32";
+
+  function migrateProductDataV32(){
+    if(localStorage.getItem(PRODUCTS_KEY))return;
+    const previous=
+      localStorage.getItem("solara_products_v09b3") ||
+      localStorage.getItem("solara_products_v09b2") ||
+      localStorage.getItem("solara_products_v09b");
+    if(previous)localStorage.setItem(PRODUCTS_KEY,previous);
+  }
+  migrateProductDataV32();
 
   function migrateProductData(){
     if(localStorage.getItem(PRODUCTS_KEY))return;
@@ -680,6 +690,7 @@
               :"Solara empfiehlt aktuell keine geplante Sonnensitzung.";
 
       renderRecommendations(uv,score,isDay);
+      chooseTodayProduct(uv,temp);
     }catch(error){
       status.textContent="Live-Daten konnten nicht geladen werden.";
       document.getElementById("currentLocation").textContent=
@@ -687,6 +698,7 @@
       document.getElementById("kawaiiWeather").innerHTML=kawaiiWeatherSvg(3,true);
       document.getElementById("todayRecommendations").innerHTML=
         "<li>Ohne Standort kann Solara den aktuellen UV-Index nicht zuverlässig bestimmen.</li>";
+      chooseTodayProduct(0,20);
     }
   }
 
@@ -699,6 +711,9 @@
 
 
   let currentProductAnalysis=null;
+  let selectedProductTags=[];
+  let currentUserRating=0;
+  let todayRecommendedProductId=null;
 
   function readProducts(){
     try{return JSON.parse(localStorage.getItem(PRODUCTS_KEY))||[]}
@@ -724,8 +739,239 @@
     });
   }
 
+  const INGREDIENT_KNOWLEDGE = {
+    "glycerin":{
+      title:"Glycerin",
+      level:"good",
+      label:"Pflegend",
+      group:"Feuchtigkeit",
+      summary:"Glycerin bindet Feuchtigkeit und kann die Hautbarriere unterstützen.",
+      profile:"Kann besonders bei trockener oder feuchtigkeitsarmer Haut hilfreich sein."
+    },
+    "niacinamide":{
+      title:"Niacinamid",
+      level:"good",
+      label:"Pflegend",
+      group:"Beruhigend / Hautbarriere",
+      summary:"Niacinamid wird häufig zur Unterstützung der Hautbarriere eingesetzt.",
+      profile:"Kann für viele Hauttypen interessant sein, auch bei zu Unreinheiten neigender Haut."
+    },
+    "panthenol":{
+      title:"Panthenol",
+      level:"good",
+      label:"Beruhigend",
+      group:"Beruhigend / Hautbarriere",
+      summary:"Panthenol wird häufig wegen seiner pflegenden und beruhigenden Eigenschaften eingesetzt.",
+      profile:"Kann bei empfindlicher oder trockener Haut angenehm sein."
+    },
+    "allantoin":{
+      title:"Allantoin",
+      level:"good",
+      label:"Beruhigend",
+      group:"Beruhigend / Hautbarriere",
+      summary:"Allantoin wird in Hautpflegeprodukten häufig als beruhigender Bestandteil verwendet.",
+      profile:"Kann für empfindliche Haut interessant sein."
+    },
+    "bisabolol":{
+      title:"Bisabolol",
+      level:"good",
+      label:"Beruhigend",
+      group:"Beruhigend / Hautbarriere",
+      summary:"Bisabolol wird häufig in Formulierungen für empfindliche Haut verwendet.",
+      profile:"Die individuelle Verträglichkeit bleibt unterschiedlich."
+    },
+    "aloe":{
+      title:"Aloe Vera",
+      level:"good",
+      label:"Pflegend",
+      group:"Feuchtigkeit",
+      summary:"Aloe-Vera-Bestandteile werden oft wegen ihres feuchtigkeitsspendenden und angenehmen Hautgefühls eingesetzt.",
+      profile:"Kann bei trockener oder empfindlicher Haut angenehm sein."
+    },
+    "hyaluronic acid":{
+      title:"Hyaluronsäure",
+      level:"good",
+      label:"Feuchtigkeit",
+      group:"Feuchtigkeit",
+      summary:"Hyaluronsäure kann Wasser binden und wird zur Unterstützung der Hautfeuchtigkeit eingesetzt.",
+      profile:"Kann besonders bei trockener oder feuchtigkeitsarmer Haut interessant sein."
+    },
+    "sodium hyaluronate":{
+      title:"Sodium Hyaluronate",
+      level:"good",
+      label:"Feuchtigkeit",
+      group:"Feuchtigkeit",
+      summary:"Sodium Hyaluronate ist eine Form der Hyaluronsäure und bindet Feuchtigkeit.",
+      profile:"Kann trockene Haut unterstützen."
+    },
+    "alcohol denat.":{
+      title:"Alcohol Denat.",
+      level:"note",
+      label:"Hinweis",
+      group:"Mögliche Reizstoffe",
+      summary:"Alcohol Denat. kann eine Formulierung leicht und schnell einziehend machen.",
+      profile:"Bei trockener oder empfindlicher Haut kann er bei manchen Menschen austrocknend oder reizend wirken."
+    },
+    "parfum":{
+      title:"Parfum",
+      level:"note",
+      label:"Hinweis",
+      group:"Duftstoffe",
+      summary:"Parfum fasst Duftstoffe zusammen, die dem Produkt einen Geruch geben.",
+      profile:"Bei empfindlicher Haut oder einer Duftstoffallergie kann besondere Vorsicht sinnvoll sein."
+    },
+    "fragrance":{
+      title:"Fragrance",
+      level:"note",
+      label:"Hinweis",
+      group:"Duftstoffe",
+      summary:"Fragrance ist eine Bezeichnung für Duftstoffe.",
+      profile:"Bei empfindlicher Haut oder Duftstoffallergien kann das Produkt weniger passend sein."
+    },
+    "limonene":{
+      title:"Limonene",
+      level:"note",
+      label:"Duftstoff",
+      group:"Duftstoffe",
+      summary:"Limonene ist ein Duftstoffbestandteil.",
+      profile:"Oxidierte Duftstoffbestandteile können bei empfindlichen Personen Reaktionen begünstigen."
+    },
+    "linalool":{
+      title:"Linalool",
+      level:"note",
+      label:"Duftstoff",
+      group:"Duftstoffe",
+      summary:"Linalool ist ein häufig verwendeter Duftstoffbestandteil.",
+      profile:"Bei Duftstoffallergie oder empfindlicher Haut kann besondere Vorsicht sinnvoll sein."
+    },
+    "octocrylene":{
+      title:"Octocrylene",
+      level:"neutral",
+      label:"UV-Filter",
+      group:"UV-Filter",
+      summary:"Octocrylene ist ein organischer UV-Filter.",
+      profile:"Ob ein Produkt passend ist, hängt von der gesamten geprüften Formulierung und deiner individuellen Verträglichkeit ab."
+    },
+    "avobenzone":{
+      title:"Avobenzone",
+      level:"neutral",
+      label:"UVA-Filter",
+      group:"UV-Filter",
+      summary:"Avobenzone ist ein organischer UVA-Filter.",
+      profile:"Die Schutzleistung wird durch die gesamte geprüfte Formulierung bestimmt."
+    },
+    "butyl methoxydibenzoylmethane":{
+      title:"Butyl Methoxydibenzoylmethane",
+      level:"neutral",
+      label:"UVA-Filter",
+      group:"UV-Filter",
+      summary:"Dies ist die INCI-Bezeichnung für Avobenzone, einen UVA-Filter.",
+      profile:"Die Gesamtformulierung entscheidet über den tatsächlichen Schutz."
+    },
+    "zinc oxide":{
+      title:"Zinkoxid",
+      level:"neutral",
+      label:"Mineralischer UV-Filter",
+      group:"UV-Filter",
+      summary:"Zinkoxid ist ein mineralischer UV-Filter und kann UVA- und UVB-Strahlung abdecken.",
+      profile:"Textur und Weißeln hängen stark von der Formulierung ab."
+    },
+    "titanium dioxide":{
+      title:"Titandioxid",
+      level:"neutral",
+      label:"Mineralischer UV-Filter",
+      group:"UV-Filter",
+      summary:"Titandioxid ist ein mineralischer UV-Filter.",
+      profile:"Die Schutzwirkung und das Hautgefühl hängen von der Gesamtformulierung ab."
+    },
+    "diethylamino hydroxybenzoyl hexyl benzoate":{
+      title:"Uvinul A Plus",
+      level:"neutral",
+      label:"UVA-Filter",
+      group:"UV-Filter",
+      summary:"Uvinul A Plus ist ein moderner organischer UVA-Filter.",
+      profile:"Ein einzelner Filter erlaubt noch keine vollständige Aussage über den Gesamtschutz."
+    },
+    "bis-ethylhexyloxyphenol methoxyphenyl triazine":{
+      title:"Tinosorb S",
+      level:"neutral",
+      label:"Breitband-UV-Filter",
+      group:"UV-Filter",
+      summary:"Tinosorb S ist ein photostabiler Breitband-UV-Filter.",
+      profile:"Der tatsächliche Schutz wird über das fertige Produkt geprüft."
+    },
+    "ethylhexyl triazone":{
+      title:"Uvinul T 150",
+      level:"neutral",
+      label:"UVB-Filter",
+      group:"UV-Filter",
+      summary:"Uvinul T 150 ist ein photostabiler UVB-Filter.",
+      profile:"Der SPF kann nicht allein aus der Zutatenliste berechnet werden."
+    },
+    "phenoxyethanol":{
+      title:"Phenoxyethanol",
+      level:"neutral",
+      label:"Konservierung",
+      group:"Konservierungsstoffe",
+      summary:"Phenoxyethanol wird zur Konservierung kosmetischer Produkte eingesetzt.",
+      profile:"Die individuelle Verträglichkeit kann unterschiedlich sein."
+    },
+    "sodium benzoate":{
+      title:"Sodium Benzoate",
+      level:"neutral",
+      label:"Konservierung",
+      group:"Konservierungsstoffe",
+      summary:"Sodium Benzoate wird als Konservierungsstoff eingesetzt.",
+      profile:"Die individuelle Verträglichkeit kann unterschiedlich sein."
+    }
+  };
+
+  function splitIngredients(text){
+    return String(text||"")
+      .split(/,|;|\n/)
+      .map(item=>item.trim())
+      .filter(Boolean);
+  }
+
+  function matchKnowledge(ingredient){
+    const normalized=ingredient.toLowerCase().replace(/\s+/g," ").trim();
+    const keys=Object.keys(INGREDIENT_KNOWLEDGE)
+      .sort((a,b)=>b.length-a.length);
+    const key=keys.find(item=>normalized.includes(item));
+    return key ? {...INGREDIENT_KNOWLEDGE[key],key,original:ingredient} : {
+      key:normalized,
+      original:ingredient,
+      title:ingredient,
+      level:"neutral",
+      label:"Nicht eingeordnet",
+      group:"Weitere Inhaltsstoffe",
+      summary:"Für diesen Inhaltsstoff ist in dieser Testversion noch keine ausführliche Wissenskarte hinterlegt.",
+      profile:"Solara bewertet unbekannte Stoffe nicht automatisch als gut oder schlecht."
+    };
+  }
+
+  function analyseIngredientGroups(text){
+    const groups={
+      "Feuchtigkeit":[],
+      "Beruhigend / Hautbarriere":[],
+      "UV-Filter":[],
+      "Duftstoffe":[],
+      "Mögliche Reizstoffe":[],
+      "Konservierungsstoffe":[],
+      "Weitere Inhaltsstoffe":[]
+    };
+
+    splitIngredients(text).forEach(ingredient=>{
+      const info=matchKnowledge(ingredient);
+      const group=groups[info.group] ? info.group : "Weitere Inhaltsstoffe";
+      groups[group].push(info);
+    });
+
+    return groups;
+  }
+
   function ingredientFlags(text){
-    const normalized=text.toLowerCase();
+    const normalized=String(text||"").toLowerCase();
     return {
       fragrance:/parfum|fragrance|limonene|linalool|citral|geraniol|citronellol/.test(normalized),
       alcohol:/alcohol denat|ethanol/.test(normalized),
@@ -733,11 +979,139 @@
       niacinamide:/niacinamide/.test(normalized),
       panthenol:/panthenol/.test(normalized),
       aloe:/aloe/.test(normalized),
+      soothing:/panthenol|allantoin|bisabolol|niacinamide|aloe/.test(normalized),
+      humectants:/glycerin|glycerol|hyaluronic acid|sodium hyaluronate|aloe/.test(normalized),
       zinc:/zinc oxide/.test(normalized),
       titanium:/titanium dioxide/.test(normalized),
       octocrylene:/octocrylene/.test(normalized),
-      avobenzone:/avobenzone|butyl methoxydibenzoylmethane/.test(normalized)
+      avobenzone:/avobenzone|butyl methoxydibenzoylmethane/.test(normalized),
+      modernUva:/diethylamino hydroxybenzoyl hexyl benzoate|bis-ethylhexyloxyphenol methoxyphenyl triazine/.test(normalized),
+      modernUvb:/ethylhexyl triazone/.test(normalized),
+      preservatives:/phenoxyethanol|sodium benzoate|potassium sorbate|benzyl alcohol/.test(normalized)
     };
+  }
+
+  function automaticTags(product,flags){
+    const tags=new Set(product.tags||[]);
+    if(product.area==="face"||product.area==="both")tags.add("Gesicht");
+    if(product.area==="body"||product.area==="both")tags.add("Körper");
+    if(product.area==="children")tags.add("Kinder");
+    if(product.waterproof)tags.add("Wasserfest");
+    if(product.nonComedogenic)tags.add("Unreine Haut");
+    if(product.fragranceFree&&!flags.fragrance)tags.add("Empfindliche Haut");
+    if(product.spf==="50"||product.spf==="50+")tags.add("Hoher UV-Schutz");
+    if(product.waterproof)tags.add("Sport");
+    if(!tags.size)tags.add("Alltag");
+    return [...tags];
+  }
+
+  function renderIngredientAnalysis(text){
+    const groups=analyseIngredientGroups(text);
+    const container=document.getElementById("ingredientGroups");
+    if(!container)return;
+
+    const visible=Object.entries(groups).filter(([,items])=>items.length);
+    container.innerHTML=visible.length ? visible.map(([group,items])=>`
+      <div class="ingredient-group-card">
+        <h3>${escapeHtml(group)}</h3>
+        <p>${items.length} erkannt</p>
+        <ul>
+          ${items.slice(0,6).map(item=>`
+            <li><button class="ingredient-chip" data-ingredient="${escapeHtml(item.original)}">${escapeHtml(item.title)}</button></li>
+          `).join("")}
+        </ul>
+      </div>`).join("") : "<p>Keine Inhaltsstoffe eingegeben.</p>";
+
+    container.querySelectorAll("[data-ingredient]").forEach(button=>{
+      button.addEventListener("click",()=>openIngredientKnowledge(button.dataset.ingredient));
+    });
+  }
+
+  function renderPersonalIngredientWarnings(flags){
+    const p=readProfile();
+    const a=p.answers||{};
+    const warnings=[];
+    const sensitive=a.sensitive==="yes"||a.sensitive==="sometimes";
+    const dry=["veryDry","dry"].includes(a.skinType);
+    const oily=a.skinType==="oily"||a.acne==="yes"||a.acne==="sometimes";
+    const fragranceAllergy=Array.isArray(a.allergies)&&a.allergies.includes("fragrance");
+
+    if(flags.fragrance){
+      warnings.push({
+        positive:false,
+        title:fragranceAllergy ? "Duftstoffallergie angegeben" : "Duftstoffe erkannt",
+        text:fragranceAllergy
+          ? "Da du eine Duftstoffallergie angegeben hast, solltest du die INCI-Liste besonders sorgfältig prüfen."
+          : sensitive
+            ? "Bei empfindlicher Haut können Duftstoffe bei manchen Menschen weniger gut verträglich sein."
+            : "Duftstoffe sind enthalten. Die individuelle Verträglichkeit ist unterschiedlich."
+      });
+    }
+
+    if(flags.alcohol && (dry||sensitive)){
+      warnings.push({
+        positive:false,
+        title:"Alcohol Denat. erkannt",
+        text:"Bei trockener oder empfindlicher Haut kann Alcohol Denat. bei manchen Menschen austrocknend oder reizend wirken."
+      });
+    }
+
+    if(flags.humectants){
+      warnings.push({
+        positive:true,
+        title:"Feuchtigkeitsspendende Stoffe erkannt",
+        text:dry
+          ? "Diese Inhaltsstoffe können gut zu deiner angegebenen trockenen Haut passen."
+          : "Die Formulierung enthält Stoffe, die Feuchtigkeit binden können."
+      });
+    }
+
+    if(flags.soothing){
+      warnings.push({
+        positive:true,
+        title:"Beruhigende Pflegebestandteile erkannt",
+        text:sensitive
+          ? "Diese Stoffe können für dein empfindliches Hautprofil interessant sein."
+          : "Pflegende und beruhigende Bestandteile wurden erkannt."
+      });
+    }
+
+    if(oily && !document.getElementById("productNonComedogenic").checked){
+      warnings.push({
+        positive:false,
+        title:"Nicht komedogen nicht bestätigt",
+        text:"Da du ölige oder zu Unreinheiten neigende Haut angegeben hast, könnte eine bestätigte nicht-komedogene Formulierung besser passen."
+      });
+    }
+
+    const container=document.getElementById("personalIngredientWarnings");
+    container.innerHTML=warnings.length ? warnings.map(item=>`
+      <div class="personal-warning ${item.positive?"positive":""}">
+        <strong>${escapeHtml(item.title)}</strong>
+        <span>${escapeHtml(item.text)}</span>
+      </div>`).join("") : `
+      <div class="personal-warning positive">
+        <strong>Keine besonderen Profilhinweise erkannt</strong>
+        <span>Aus den eingegebenen Angaben ergibt sich derzeit kein zusätzlicher persönlicher Hinweis.</span>
+      </div>`;
+  }
+
+  function openIngredientKnowledge(name){
+    const info=matchKnowledge(name);
+    document.getElementById("knowledgeTitle").textContent=info.title;
+    document.getElementById("knowledgeContent").innerHTML=`
+      <span class="knowledge-level ${info.level}">${escapeHtml(info.label)}</span>
+      <div class="knowledge-details">
+        <h3>${escapeHtml(info.group)}</h3>
+        <p>${escapeHtml(info.summary)}</p>
+        <h3>Für dein Profil</h3>
+        <p>${escapeHtml(info.profile)}</p>
+      </div>`;
+    document.getElementById("ingredientKnowledgeModal").classList.remove("hidden");
+  }
+
+  function closeIngredientKnowledge(){
+    document.getElementById("ingredientKnowledgeModal").classList.add("hidden");
   }
 
   function analyseCurrentProduct(){
@@ -775,8 +1149,18 @@
     if(fragranceFree){score+=8;strengths.push("Als parfumfrei angegeben.");}
     if(nonComedogenic){score+=7;strengths.push("Als nicht komedogen angegeben.");}
 
-    if(flags.glycerin||flags.panthenol||flags.aloe||flags.niacinamide){
+    if(flags.glycerin||flags.panthenol||flags.aloe||flags.niacinamide||flags.humectants){
       score+=5;strengths.push("Pflegende oder feuchtigkeitsspendende Inhaltsstoffe erkannt.");
+    }
+
+    if(flags.modernUva||flags.modernUvb){
+      score+=5;
+      strengths.push("Moderne, photostabile UV-Filter wurden in der INCI-Liste erkannt.");
+    }
+
+    if(flags.soothing){
+      score+=3;
+      strengths.push("Beruhigende oder hautbarriereunterstützende Inhaltsstoffe erkannt.");
     }
 
     const sensitive=a.sensitive==="yes"||a.sensitive==="sometimes";
@@ -836,8 +1220,24 @@
       strengths,warnings,
       frontImage:document.getElementById("frontPreview").dataset.image||"",
       backImage:document.getElementById("backPreview").dataset.image||"",
+      tags:[...selectedProductTags],
+      userRating:currentUserRating,
+      notes:document.getElementById("productNotes").value.trim(),
+      experiences:{
+        fastAbsorb:document.getElementById("expFastAbsorb").checked,
+        sticky:document.getElementById("expSticky").checked,
+        whiteCast:document.getElementById("expWhiteCast").checked,
+        greasy:document.getElementById("expGreasy").checked,
+        niceSmell:document.getElementById("expNiceSmell").checked
+      },
       createdAt:new Date().toISOString()
     };
+
+    currentProductAnalysis.tags=automaticTags(currentProductAnalysis,flags);
+    selectedProductTags=[...currentProductAnalysis.tags];
+    renderSelectedTags();
+    renderIngredientAnalysis(ingredients);
+    renderPersonalIngredientWarnings(flags);
 
     document.getElementById("productScore").textContent=score;
     const badge=document.getElementById("productSuitability");
@@ -878,6 +1278,94 @@
         <strong>${i+1}. ${title}</strong>
         <small>${reason}</small>
       </div>`).join("");
+    card.classList.remove("hidden");
+  }
+
+
+  function renderSelectedTags(){
+    document.querySelectorAll("#productTags .tag-button").forEach(button=>{
+      button.classList.toggle("selected",selectedProductTags.includes(button.dataset.tag));
+    });
+  }
+
+  function setUserRating(value){
+    currentUserRating=Number(value||0);
+    document.querySelectorAll("#userRating button").forEach(button=>{
+      const rating=Number(button.dataset.rating);
+      button.textContent=rating<=currentUserRating?"★":"☆";
+      button.classList.toggle("selected",rating<=currentUserRating);
+    });
+  }
+
+  function resetProductFormExtras(){
+    selectedProductTags=[];
+    currentUserRating=0;
+    renderSelectedTags();
+    setUserRating(0);
+    ["expFastAbsorb","expSticky","expWhiteCast","expGreasy","expNiceSmell"].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el)el.checked=false;
+    });
+    document.getElementById("productNotes").value="";
+  }
+
+  function prepareOcrHint(){
+    const hasBack=Boolean(document.getElementById("backPreview").dataset.image);
+    const hint=document.getElementById("ocrHint");
+    if(!hasBack){
+      hint.textContent="Bitte fotografiere zuerst die Rückseite.";
+      return;
+    }
+
+    const currentText=document.getElementById("ingredients").value.trim();
+    if(currentText){
+      hint.textContent="Der eingetragene Text wurde zur Analyse übernommen. Bitte prüfe Schreibfehler und die Reihenfolge der INCI-Liste.";
+      renderIngredientAnalysis(currentText);
+      renderPersonalIngredientWarnings(ingredientFlags(currentText));
+    }else{
+      hint.textContent="Das Rückseitenfoto ist vorhanden. Eine zuverlässige automatische Texterkennung läuft in dieser Browser-Testversion noch nicht; füge den erkannten oder abgelesenen Text bitte ein und tippe erneut auf diesen Button.";
+    }
+  }
+
+  function calculateTodayProductScore(product,uv=0,temp=20){
+    let score=Number(product.score||0);
+    if(uv>=6 && (product.spf==="50"||product.spf==="50+"))score+=8;
+    if(uv>=3 && product.uva)score+=5;
+    if(temp>=24 && product.area==="face" && product.nonComedogenic)score+=3;
+    if(product.favorite)score+=2;
+    if(product.userRating>=4)score+=2;
+    return Math.max(0,Math.min(100,score));
+  }
+
+  function chooseTodayProduct(uv=0,temp=20){
+    const products=readProducts().map(normalizeProduct);
+    const card=document.getElementById("todayProductCard");
+    if(!card)return;
+
+    if(!products.length){
+      card.classList.add("hidden");
+      todayRecommendedProductId=null;
+      return;
+    }
+
+    const ranked=products
+      .map(product=>({...product,todayScore:calculateTodayProductScore(product,uv,temp)}))
+      .sort((a,b)=>b.todayScore-a.todayScore);
+
+    const best=ranked[0];
+    todayRecommendedProductId=best.id;
+    document.getElementById("todayProductName").textContent=`${best.brand} ${best.name}`;
+    document.getElementById("todayProductScore").textContent=`${best.todayScore}/100`;
+
+    const reasons=[];
+    if(uv>=6)reasons.push("hoher UV-Index");
+    if(best.spf==="50"||best.spf==="50+")reasons.push("hoher SPF");
+    if(best.uva)reasons.push("bestätigter UVA-Schutz");
+    if(best.favorite)reasons.push("dein Favorit");
+    if(best.userRating>=4)reasons.push("deine gute persönliche Bewertung");
+    document.getElementById("todayProductReason").textContent=
+      `Heute besonders passend wegen ${reasons.length?reasons.join(", "):"der besten Übereinstimmung mit deinem Hautprofil"}.`;
+
     card.classList.remove("hidden");
   }
 
@@ -931,7 +1419,11 @@
       id:product.id||Date.now()+Math.floor(Math.random()*1000),
       favorite:Boolean(product.favorite),
       scanCount:Number(product.scanCount||1),
-      updatedAt:product.updatedAt||product.createdAt||new Date().toISOString()
+      updatedAt:product.updatedAt||product.createdAt||new Date().toISOString(),
+      tags:Array.isArray(product.tags)?product.tags:[],
+      userRating:Number(product.userRating||0),
+      notes:product.notes||"",
+      experiences:product.experiences||{}
     };
     normalized.breakdown=product.breakdown||productBreakdown(normalized);
     return normalized;
@@ -971,6 +1463,7 @@
       document.getElementById("saveProduct").textContent="Zu meinen Produkten hinzufügen";
       renderSavedProducts();
       updateProfileProductStatus();
+      chooseTodayProduct(0,20);
       alert(editingId?"Produkt wurde aktualisiert.":"Produkt wurde gespeichert.");
     }catch(error){
       console.error(error);
@@ -1028,6 +1521,8 @@
               <strong>${escapeHtml(product.brand)} ${escapeHtml(product.name)}</strong>
               <small>SPF ${escapeHtml(product.spf)} · ${escapeHtml(product.suitability)}</small>
               <small>${product.favorite?"★ Favorit · ":""}${product.score===bestScore?"Beste Übereinstimmung · ":""}zuletzt ${new Date(product.updatedAt).toLocaleDateString("de-DE")}</small>
+              <div class="product-tag-list">${(product.tags||[]).slice(0,4).map(tag=>`<span class="product-tag-chip">${escapeHtml(tag)}</span>`).join("")}</div>
+              ${product.userRating?`<div class="user-rating-display">${"★".repeat(product.userRating)}${"☆".repeat(5-product.userRating)}</div>`:""}
             </div>
           </div>
           <div class="product-library-score">${product.score}/100</div>
@@ -1109,6 +1604,26 @@
       </div>
 
       <div class="analysis-card">
+        <h3>Produkt-Tags</h3>
+        <div class="product-tag-list">
+          ${(product.tags||[]).length?(product.tags||[]).map(tag=>`<span class="product-tag-chip">${escapeHtml(tag)}</span>`).join(""):"<span>Keine Tags gespeichert.</span>"}
+        </div>
+      </div>
+
+      <div class="user-experience-card">
+        <h3>Deine Erfahrung</h3>
+        <div class="user-rating-display">${product.userRating?`${"★".repeat(product.userRating)}${"☆".repeat(5-product.userRating)}`:"Noch keine Bewertung"}</div>
+        <p>${product.notes?escapeHtml(product.notes):"Keine persönliche Notiz gespeichert."}</p>
+        <ul>
+          ${product.experiences?.fastAbsorb?"<li>Zieht schnell ein</li>":""}
+          ${product.experiences?.sticky?"<li>Klebt</li>":""}
+          ${product.experiences?.whiteCast?"<li>Weißelt</li>":""}
+          ${product.experiences?.greasy?"<li>Hinterlässt Fettfilm</li>":""}
+          ${product.experiences?.niceSmell?"<li>Angenehmer Geruch</li>":""}
+        </ul>
+      </div>
+
+      <div class="analysis-card">
         <h3>Produktverlauf</h3>
         <p>Erstmals gespeichert: ${new Date(product.createdAt).toLocaleDateString("de-DE")}</p>
         <p>Zuletzt geändert: ${new Date(product.updatedAt).toLocaleDateString("de-DE")}</p>
@@ -1136,6 +1651,7 @@
     product.updatedAt=new Date().toISOString();
     writeProducts(products);
     renderSavedProducts();
+    chooseTodayProduct(0,20);
     if(activeProductId===id)openProductDetail(id);
   }
 
@@ -1152,6 +1668,15 @@
     document.getElementById("productFragranceFree").checked=Boolean(product.fragranceFree);
     document.getElementById("productNonComedogenic").checked=Boolean(product.nonComedogenic);
     document.getElementById("ingredients").value=product.ingredients||"";
+    selectedProductTags=[...(product.tags||[])];
+    renderSelectedTags();
+    setUserRating(product.userRating||0);
+    document.getElementById("productNotes").value=product.notes||"";
+    document.getElementById("expFastAbsorb").checked=Boolean(product.experiences?.fastAbsorb);
+    document.getElementById("expSticky").checked=Boolean(product.experiences?.sticky);
+    document.getElementById("expWhiteCast").checked=Boolean(product.experiences?.whiteCast);
+    document.getElementById("expGreasy").checked=Boolean(product.experiences?.greasy);
+    document.getElementById("expNiceSmell").checked=Boolean(product.experiences?.niceSmell);
 
     const front=document.getElementById("frontPreview");
     const back=document.getElementById("backPreview");
@@ -1175,19 +1700,11 @@
     closeProductDetail();
     renderSavedProducts();
     updateProfileProductStatus();
+    chooseTodayProduct(0,20);
   }
 
   function explainIngredient(name){
-    const normalized=name.toLowerCase();
-    let explanation="Für diesen Inhaltsstoff ist in dieser Testversion noch keine ausführliche Erklärung hinterlegt.";
-    if(/niacinamide/.test(normalized))explanation="Niacinamid unterstützt die Hautbarriere und wird häufig bei empfindlicher oder zu Unreinheiten neigender Haut eingesetzt.";
-    else if(/glycerin|glycerol/.test(normalized))explanation="Glycerin bindet Feuchtigkeit und kann trockene Haut unterstützen.";
-    else if(/panthenol/.test(normalized))explanation="Panthenol wird häufig wegen seiner beruhigenden und pflegenden Eigenschaften verwendet.";
-    else if(/parfum|fragrance/.test(normalized))explanation="Duftstoffe sorgen für Geruch. Empfindliche Haut oder Menschen mit Duftstoffallergie können darauf reagieren.";
-    else if(/alcohol denat|ethanol/.test(normalized))explanation="Alcohol Denat. kann Formulierungen leichter machen, bei trockener oder empfindlicher Haut aber austrocknend wirken.";
-    else if(/zinc oxide/.test(normalized))explanation="Zinkoxid ist ein mineralischer UV-Filter und bietet Schutz im UVA- und UVB-Bereich.";
-    else if(/titanium dioxide/.test(normalized))explanation="Titandioxid ist ein mineralischer UV-Filter. Die Schutzwirkung hängt von der geprüften Gesamtformulierung ab.";
-    alert(`${name}\n\n${explanation}`);
+    openIngredientKnowledge(name);
   }
 
   function populateCompareSelects(){
@@ -1273,6 +1790,25 @@
 
   previewImage("frontPhoto","frontPreview");
   previewImage("backPhoto","backPreview");
+
+  document.querySelectorAll("#productTags .tag-button").forEach(button=>{
+    button.addEventListener("click",()=>{
+      const tag=button.dataset.tag;
+      selectedProductTags=selectedProductTags.includes(tag)
+        ? selectedProductTags.filter(item=>item!==tag)
+        : [...selectedProductTags,tag];
+      renderSelectedTags();
+    });
+  });
+
+  document.querySelectorAll("#userRating button").forEach(button=>{
+    button.addEventListener("click",()=>setUserRating(button.dataset.rating));
+  });
+
+  document.getElementById("prepareOcr").addEventListener("click",prepareOcrHint);
+  document.getElementById("openTodayProduct").addEventListener("click",()=>{
+    if(todayRecommendedProductId)openProductDetail(todayRecommendedProductId);
+  });
   document.getElementById("analyseProduct").addEventListener("click",analyseCurrentProduct);
   document.getElementById("saveProduct").addEventListener("click",saveCurrentProduct);
   document.getElementById("productSearch").addEventListener("input",renderSavedProducts);
@@ -1284,6 +1820,10 @@
   });
   document.querySelectorAll("[data-close-product-compare]").forEach(node=>{
     node.addEventListener("click",closeProductCompare);
+  });
+
+  document.querySelectorAll("[data-close-ingredient-knowledge]").forEach(node=>{
+    node.addEventListener("click",closeIngredientKnowledge);
   });
 
   document.getElementById("toggleFavoriteProduct").addEventListener("click",()=>{
@@ -1305,6 +1845,8 @@
   document.getElementById("runProductComparison").addEventListener("click",runProductComparison);
 
   renderSavedProducts();
+  resetProductFormExtras();
+  chooseTodayProduct(0,20);
 
   document.querySelectorAll(".nav-button").forEach(button=>{
     button.addEventListener("click",()=>openTab(button.dataset.tab));

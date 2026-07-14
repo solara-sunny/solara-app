@@ -1,42 +1,42 @@
-SOLARA BETA 0.9B – LIEFERUNG 2
+SOLARA BETA 0.9B – LIEFERUNG 3.2
 
 Diese Version enthält alle bisherigen Lieferungen und ergänzt:
 
-PRODUKTBIBLIOTHEK:
-- Fehler beim Speichern überarbeitet
-- mehrere Produkte dauerhaft lokal speichern
-- bestehende Produkte aus Lieferung 1 übernehmen
-- Produktanzahl
-- Suche
-- Sortierung nach Datum, Score, Alphabet oder Favoriten
-- Favoriten
-- bestes Produkt markieren
-- Produktdetails öffnen
-- Vorder- und Rückseitenfotos anzeigen
-- Produkt bearbeiten
-- Produkt löschen mit Sicherheitsabfrage
-- Scan- und Änderungsverlauf
-- Anzahl der Analysen
-- Produktvergleich für zwei gespeicherte Produkte
+INTELLIGENTE INHALTSSTOFFANALYSE:
+- INCI-Liste wird in verständliche Gruppen eingeordnet:
+  • Feuchtigkeit
+  • Beruhigend / Hautbarriere
+  • UV-Filter
+  • Duftstoffe
+  • mögliche Reizstoffe
+  • Konservierungsstoffe
+  • weitere Inhaltsstoffe
+- Erkennung zusätzlicher moderner UVA- und UVB-Filter
+- automatische Produkt-Tags aus Produktangaben und Inhaltsstoffen
+- Score berücksichtigt moderne Filter sowie beruhigende und feuchtigkeitsspendende Stoffe
 
-PRODUKT SCORE 2.0:
-- Aufschlüsselung in:
-  • Hautprofil 40 Punkte
-  • UV-Schutz 25 Punkte
-  • Inhaltsstoffe 20 Punkte
-  • Anwendung 10 Punkte
-  • Extras 5 Punkte
-- Erklärung „Warum diese Punktzahl?“
-- persönliche Warnungen anhand des gespeicherten Hautprofils
-- antippbare Inhaltsstoffe mit kurzen Erklärungen
+PERSÖNLICHE HINWEISE:
+- empfindliche Haut
+- trockene Haut
+- ölige oder zu Unreinheiten neigende Haut
+- angegebene Duftstoffallergie
+- verständliche, vorsichtige Formulierungen
+- keine Diagnosen und keine Verträglichkeitsgarantie
 
-PROFIL:
-- Produkte zählen jetzt zum Profilstatus
+SOLARA-WISSENSKARTEN:
+- antippbare Inhaltsstoffe
+- Erklärung der Funktion
+- Einordnung für das persönliche Hautprofil
+- eigene Karten statt einfacher Hinweisfenster
+
+OCR STUFE 2:
+- Rückseitenfoto und eingegebener Text werden gemeinsam vorbereitet
+- sofortige Gruppierung des eingefügten Textes
+- klare Kennzeichnung, dass eine zuverlässige automatische Bilderkennung in dieser Browser-Testversion noch nicht aktiv ist
 
 WICHTIG:
-Die Produkte werden lokal in Safari beziehungsweise in der installierten Web-App gespeichert.
-Beim Löschen der Website-Daten oder einem Gerätewechsel können sie verloren gehen.
-Die Bewertung ist eine Orientierung und keine Garantie für individuelle Verträglichkeit.
+Der SPF und die Schutzleistung können nicht aus einzelnen Inhaltsstoffen berechnet werden.
+Die Bewertung bezieht sich auf die bestätigten Produktangaben und dient nur der Orientierung.
 
 GITHUB:
 1. ZIP entpacken.
